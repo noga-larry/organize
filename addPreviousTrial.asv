@@ -11,7 +11,7 @@ for ii=1:length(data.trials)
     % update
     if ~data.trials(ii).fail
         previous_outcome(match_p{ii})=...
-            cellfun('isempty',regexp({data.trials(ii).name},'NR'));
+            ~cellfun('isempty',regexp({data.trials(ii).name},'NR'));
     end
 end
 
@@ -24,3 +24,4 @@ end
 
 
 
+end
