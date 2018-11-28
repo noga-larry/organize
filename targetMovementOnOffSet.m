@@ -1,4 +1,4 @@
-function  events  = targetMovementOnOffSet( targets )
+function  [onset offset]  = targetMovementOnOffSet( targets )
     % This function finds the begining an end of the target movement
     
 MOVMENT_TIME = 30; 
@@ -12,8 +12,8 @@ for i = 1:length(temp)
     end
     
     if count > MOVMENT_TIME
-     events.movement_onset = i - MOVMENT_TIME;
-     events.movement_offset = find(temp(events.movement_onset:length(temp))== 0, 1) +events.movement_onset - 1 ;
+     onset = i - MOVMENT_TIME;
+     offset = find(temp(onset:length(temp))== 0, 1) +onset - 1 ;
      break
     end
 end
