@@ -1,7 +1,8 @@
 function data = addPreviousTrial (data)
-% This function adds a fields to the strcture data, "previous_outcome' that
-% is 0 is there was no reward in the previus trial of the same kind and 1
-% if there was.
+% This function adds a fields to the strcture data, 'previous_outcome' that
+% is 0 is there was no reward in the previous trial of the same kind and 1
+% if there was. In a two target choice task the previous trial of the same
+% kind is a trial where the same target had been chosen. 
 
 [probabilities,match_p] = getProbabilities (data);
 
