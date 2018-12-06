@@ -36,12 +36,16 @@ function get_data(task_info, dir_data_from, dir_data_to, monkey,focus_task)
 %       .vPos               Vertical position
 %       .hVel               Horizonal velocity
 %       .vVel               Vertical velocity
-%       .beginSaccade       Beginning time points for saccased and blinks.
-%       .endSaccade         Ending time points for saccased and blinks.
-%       .screen_rotation    Angle of screen rotation
-%       .maestro_name       Name of Mastro file.
-%       .movement_onset     Time of target movement onset (ms)
+%       .beginSaccade       Beginning time poin
+% get behavior
 
+%             [beginSaccade, endSaccade] = getSaccades( data.trials(f-d).hVel, data.trials(f-d).vVel,...
+%                 data_raw.blinks, data_raw.targets);
+%             data.trials(f-d).beginSaccade = beginSaccade;
+%             data.trials(f-d).endSaccade = endSaccade;
+%             data.trials(f-d).screen_rotation = double(data_raw.key.iPosTheta/1000);
+%             data.trials(f-d).maestro_name = files(trial_num(f)).name;
+%             data.trials(f-d).movement_onset = targetMovementOnOffSet(data_raw.targets);
 mkdir([dir_data_to '\' focus_task])
 % sub folder in which to save trials
 dir_to = [dir_data_to '\' focus_task];

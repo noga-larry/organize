@@ -7,7 +7,12 @@ function [beginSaccade, endSaccade] = getSaccades( Hvel, Vvel, blinks, targets )
 %          blinks    Maestro's matrix of blinks (data.blinks), beginning   
 %                    and end points.
 %          targets   Maestro's data.targets structure. Used to change the
-%                    criteria for determining that there was a saccade. 
+%                    criteria for determining that there was a saccade.
+% Outputs: beginSaccade 
+%                    Time point of saccades beginnings
+%          endSaccade 
+%                    Time point of saccades endings
+
 
 % constants 
 SD_SMOOTH = 5; % parameter for smoothing
