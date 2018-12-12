@@ -8,7 +8,7 @@ function get_data(task_info, dir_data_from, dir_data_to, monkey,focus_task)
 % additional functions.
 
 % Inputs:   task_info     A matlab data structure based on the session
-%                         DB. Each row represents a session. Need to 
+%                         DB. Each row represents a session. Need to
 %                         contain the fields:
 %            .task        Name of task in session
 %            .date        Date of the session (string)
@@ -19,17 +19,17 @@ function get_data(task_info, dir_data_from, dir_data_to, monkey,focus_task)
 %           monkey        Name of monkey
 %           focus_task    Task we want to get data strucutes for
 
-% Outputs:  The function create a directory named focus_task in 
-% dir_data_to. In this folder it saves matlab structure, one for each 
+% Outputs:  The function create a directory named focus_task in
+% dir_data_to. In this folder it saves matlab structure, one for each
 % session of the task. These structures are named data and as a file in the
-% name of the session date. Each data structure contains a field called 
+% name of the session date. Each data structure contains a field called
 % data.info that contain information taken from the session DB. It
 % additionally contains the sessions trials in the field data.trials
 %       .name               Trial name as written in Maestro
 %       .trial_num          Number in Maestro
 %       .trial_length       Duration of trial (ms)
 %       .fail               Bollian: 1-if monkey failed trial, 0 - if
-%                           monkey succeeded. 
+%                           monkey succeeded.
 %       .choice             Bollian: 1-if monkey chose the first target
 %                          (should be the adaptove choice), 0-else.
 %       .hPos               Horizonal position
@@ -42,6 +42,12 @@ function get_data(task_info, dir_data_from, dir_data_to, monkey,focus_task)
 %       .maestro_name       Name of Mastro file.
 %       .movement_onset     Time of target movement onset (ms)
 
+% check if there is also neural data, or behavior only
+
+discard_q = 1; % whether or not to discard cells with '?' in their type
+
+neuro_flag = isfield(task_info, 'cell_ID')
+
 mkdir([dir_data_to '\' focus_task])
 % sub folder in which to save trials
 dir_to = [dir_data_to '\' focus_task];
@@ -49,24 +55,31 @@ dir_to = [dir_data_to '\' focus_task];
 CALIBRATE_VEL = 10.8826;
 CALIBRATE_POS = 40;
 
-
-ind_task = find(strcmp({task_info.task},focus_task));
+bool_task = strcmp({task_info.task},focus_task);
+bool_monkey = ~cellfun(@isempty,regexp({task_info.session},monkey(1:2)));
+ind_task = find(bool_task.*bool_monkey);
 fields = fieldnames(task_info);
 
-% check if there aretwo sessions in the same day
-session_dates = [task_info(ind_task).date];
-repeats = zeros(size(session_dates));
-for i = 1:length(session_dates)
-repeats(i) = sum(session_dates(1:i)==session_dates(i));
+% check if there are two sessions in the same day - relevent only when
+% there is no devition by cell ID
+if ~neuro_flag
+    session_dates = [task_info(ind_task).date];
+    repeats = zeros(size(session_dates));
+    for i = 1:length(session_dates)
+        repeats(i) = sum(session_dates(1:i)==session_dates(i));
+    end
 end
 
 
 
 
 for ii = 1:length(ind_task)
-    
     % subfolder fro which to take trials
-    dir_from = [dir_data_from '\' monkey(1:2) num2str(task_info(ind_task(ii)).date)];
+    session_date = num2str(task_info(ind_task(ii)).date);
+    if length(session_date)<6 %important for Mati's FEF data
+        session_date = ['0' session_date];
+    end
+    dir_from = [dir_data_from '\' monkey(1:2) session_date ];
     
     
     if ~ (7==exist(dir_from,'dir'))
@@ -82,19 +95,35 @@ for ii = 1:length(ind_task)
     
     % run over trials and save them
     files = dir (dir_from); files = files(3:end);
-    f_b = task_info(ind_task(ii)).file_begin;
-    f_e = task_info(ind_task(ii)).file_end;
+    if neuro_flag
+        f_b = task_info(ind_task(ii)).fb_after_sort;
+        f_e = task_info(ind_task(ii)).fe_after_sort;
+        if ~isnumeric(f_b)
+            f_b = str2num(f_b);
+            f_e = str2num(f_e);
+            trial_num = [f_b(1):f_e(1) f_b(2):f_e(2)];
+        else
+            trial_num = f_b:f_e;
+        end
+        
+        num_e = task_info(ind_task(ii)).electrode; % electode number
+        num_t = task_info(ind_task(ii)).template;  % template number
+        
+    else
+        f_b = task_info(ind_task(ii)).file_begin;
+        f_e = task_info(ind_task(ii)).file_end;
+        trial_num = f_b:f_e;
+    end
     
-    trial_num = f_b:f_e;
+    
     
     % get trial info
     d = 0; % counting number of discarded trials
     for f = 1:length(trial_num)
-        data_raw = readcxdata(  [dir_from '\' monkey(1:2) num2str(data.info.date) data.info.session sprintf('.%04d', trial_num(f))]);
+        data_raw = readcxdata(  [dir_from '\'  data.info.session 'a' sprintf('.%04d', trial_num(f))]);
         if isempty(data_raw.discard)
             data_raw.discard = 0;
         end
-        
         if ~ data_raw.discard
             flags = data_raw.key.flags;
             data.trials(f-d).name = data_raw.trialname;
@@ -118,33 +147,45 @@ for ii = 1:length(ind_task)
             data.trials(f-d).screen_rotation = double(data_raw.key.iPosTheta/1000);
             data.trials(f-d).maestro_name = files(trial_num(f)).name;
             data.trials(f-d).movement_onset = targetMovementOnOffSet(data_raw.targets);
-           
+            if neuro_flag
+                data.trials(f-d).spike_times = data_raw.sortedSpikes{num_e+(num_t-1)*5};
+            end
+            
+            
         else
             d = d+1;
         end
         
     end
-
     
-    % global sesson information
-    data.info.directions = getDirections (data);
     
     % check screen rotation
     rotated = [data.trials.screen_rotation]~=0;
     if any(rotated)
-        display (['screen is rotated:' num2str(data.info.date)])
-        if max([data.trials.screen_rotation])~=min([data.trials.screen_rotation])
-           display (['rotation change mid session:' num2str(data.info.date)]) 
+        if neuro_flag
+            display (['screen is rotated:' num2str(data.info.cell_ID)])
+        else
+            display (['screen is rotated:' num2str(data.info.date)])
         end
-            
+        if max([data.trials.screen_rotation])~=min([data.trials.screen_rotation])
+            display (['rotation change mid session:' num2str(data.info.date)])
+        end
+        
     end
     
+    
+    
     % name cell data file
-    try
+    if neuro_flag
+        name = [num2str(task_info(ind_task(ii)).cell_ID) task_info(ind_task(ii)).cell_type];
+    else
         name = num2str(task_info(ind_task(ii)).date);
         if repeats(ii)>1
             name = [name '_' num2str(repeats(ii))];
         end
+    end
+    try
+        
         save([dir_to '\' name], 'data')
     catch
         beep
@@ -163,15 +204,24 @@ for ii = 1:length(ind_task)
             end
         end
     end
+    
+    % Create mata-data information structure:
+    task_DB(ii).name = name;
+    task_DB(ii).date = session_date;
+    task_DB(ii).num_trials = length(data.trials);
+    if neuro_flag
+        task_DB(ii).cell_ID = data.info.cell_ID;
+        task_DB(ii).cell_type = data.info.cell_type;
+        task_DB(ii).grade = data.info.grade;
+    end
     clear data
     
-    if mod(ii-ind_task(1),50)==0
-        disp([num2str(ii-ind_task(1)) '/' num2str(length(ind_task))])
+    if mod(ii,50)==0
+        disp([num2str(ii) '\' num2str(length(ind_task))])
     end
     
-    
 end
-
+save ([dir_to '\task_DB'],'task_DB')
 disp('Finished!')
 
 

@@ -1,8 +1,8 @@
 clear
-session = 'al180905';
-new_base = 'al180905a.';
-base_name = 'C:\noga\Albert behavior\Maestro Data\al180905';
-old_dir = cd('C:\noga\Albert behavior\Maestro Data\al180905');
+session = 'yo081913b';
+new_base = 'yo081913a.';
+base_name = 'C:\noga\Dynamical systems\Maestro Data\yoda\yo081913';
+old_dir = cd('C:\noga\Dynamical systems\Maestro Data\yoda\yo081913');
 files = dir(base_name); files = files(3:end);
 %first = 1;
 first =1;
