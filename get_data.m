@@ -44,7 +44,7 @@ function get_data(task_info, dir_data_from, dir_data_to, monkey,focus_task)
 
 % check if there is also neural data, or behavior only
 
-discard_q = 1; % whether or not to discard cells with '?' in their type
+discard_q = 0; % whether or not to discard cells with '?' in their type
 
 neuro_flag = isfield(task_info, 'cell_ID')
 
@@ -120,7 +120,7 @@ for ii = 1:length(ind_task)
     % get trial info
     d = 0; % counting number of discarded trials
     for f = 1:length(trial_num)
-        data_raw = readcxdata(  [dir_from '\'  data.info.session 'a' sprintf('.%04d', trial_num(f))]);
+        data_raw = readcxdata(  [dir_from '\'  data.info.session data.info.trial_type sprintf('.%04d', trial_num(f))]);
         if isempty(data_raw.discard)
             data_raw.discard = 0;
         end
@@ -184,8 +184,10 @@ for ii = 1:length(ind_task)
             name = [name '_' num2str(repeats(ii))];
         end
     end
+    while exist([dir_data_to '\' focus_task '\' name '.mat'], 'file')
+        name = [name '_i'];
+    end
     try
-        
         save([dir_to '\' name], 'data')
     catch
         beep
