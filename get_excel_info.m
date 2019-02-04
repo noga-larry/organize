@@ -14,7 +14,8 @@ for ii=1:size(raw,2)
     varData = raw (2:end,ii); 
     [task_info(1:length(varData)).(varName)]=deal(varData{:});
 end
-  
-save(dir_to,'task_info')
+
+
+save([dir_to '\task_info'],'task_info')
 end
 

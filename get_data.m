@@ -1,4 +1,4 @@
-function get_data(task_info, dir_data_from, dir_data_to, monkey,focus_task)
+function get_data(task_info, dir_data_from, dir_data_to, monkey, focus_task)
 % This function creates a data strucutre for each cell\session and saves
 % it. It takes different Maestro files and gathers them according to a
 % session DB. These structures are later used in almost all my
@@ -45,8 +45,11 @@ function get_data(task_info, dir_data_from, dir_data_to, monkey,focus_task)
 % check if there is also neural data, or behavior only
 
 discard_q = 0; % whether or not to discard cells with '?' in their type
+find_saccades = 0; % whether or not to look for saccades. if false,
+%                    saccades will be taken from the mark1 and mark2 fields
+%                    in the Maestro file.
 
-neuro_flag = isfield(task_info, 'cell_ID')
+neuro_flag = isfield(task_info, 'cell_ID');
 
 mkdir([dir_data_to '\' focus_task])
 % sub folder in which to save trials
@@ -59,6 +62,7 @@ bool_task = strcmp({task_info.task},focus_task);
 bool_monkey = ~cellfun(@isempty,regexp({task_info.session},monkey(1:2)));
 ind_task = find(bool_task.*bool_monkey);
 fields = fieldnames(task_info);
+
 
 % check if there are two sessions in the same day - relevent only when
 % there is no devition by cell ID
@@ -140,10 +144,17 @@ for ii = 1:length(ind_task)
             data.trials(f-d).vPos = data_raw.data(2,:)/CALIBRATE_POS;
             data.trials(f-d).hVel = data_raw.data(3,:)/CALIBRATE_VEL;
             data.trials(f-d).vVel = data_raw.data(4,:)/CALIBRATE_VEL;
-            [beginSaccade, endSaccade] = getSaccades( data.trials(f-d).hVel, data.trials(f-d).vVel,...
-                data_raw.blinks, data_raw.targets);
-            data.trials(f-d).beginSaccade = beginSaccade;
-            data.trials(f-d).endSaccade = endSaccade;
+            if find_saccades
+                [beginSaccade, endSaccade] = getSaccades( data.trials(f-d).hVel, data.trials(f-d).vVel,...
+                    data_raw.blinks, data_raw.targets);
+                data.trials(f-d).beginSaccade = beginSaccade;
+                data.trials(f-d).endSaccade = endSaccade;
+            else
+                data.trials(f-d).beginSaccade = data_raw.mark1;
+                data.trials(f-d).endSaccade = data_raw.mark2;
+            end
+            
+            
             data.trials(f-d).screen_rotation = double(data_raw.key.iPosTheta/1000);
             data.trials(f-d).maestro_name = files(trial_num(f)).name;
             data.trials(f-d).movement_onset = targetMovementOnOffSet(data_raw.targets);
