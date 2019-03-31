@@ -45,7 +45,7 @@ function get_data(task_info, dir_data_from, dir_data_to, monkey, focus_task)
 % check if there is also neural data, or behavior only
 
 discard_q = 0; % whether or not to discard cells with '?' in their type
-find_saccades = 0; % whether or not to look for saccades. if false,
+saccades_extraction = 0; % whether or not to look for saccades. if false,
 %                    saccades will be taken from the mark1 and mark2 fields
 %                    in the Maestro file.
 
@@ -144,7 +144,7 @@ for ii = 1:length(ind_task)
             data.trials(f-d).vPos = data_raw.data(2,:)/CALIBRATE_POS;
             data.trials(f-d).hVel = data_raw.data(3,:)/CALIBRATE_VEL;
             data.trials(f-d).vVel = data_raw.data(4,:)/CALIBRATE_VEL;
-            if find_saccades
+            if saccades_extraction 
                 [beginSaccade, endSaccade] = getSaccades( data.trials(f-d).hVel, data.trials(f-d).vVel,...
                     data_raw.blinks, data_raw.targets);
                 data.trials(f-d).beginSaccade = beginSaccade;
