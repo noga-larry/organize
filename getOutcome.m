@@ -1,4 +1,4 @@
-function [match_o] = getOutcome (data)
+function match_o = getOutcome (data)
 % This function finds all target reward probabilities in data based on
 % trial names.
 % Inputs:     data           A structure containig session trials
@@ -10,8 +10,7 @@ function [match_o] = getOutcome (data)
 expression = '(?<!N)R|NR'; 
 [match_o,~] = regexp({data.trials.name},expression,'match','split','forceCellOutput');
 match_o = reshape([match_o{:}],length(match_o{1}),length(match_o));
-match_o =  cellfun(@str2double,match_o);
-noReward = strcmp(match_o,'NR');
+noReward = strcmp('NR',match_o);
 Reward = strcmp(match_o,'R');
 
 if any (~(noReward|Reward))
