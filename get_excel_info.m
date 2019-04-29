@@ -15,7 +15,8 @@ for ii=1:size(raw,2)
     [task_info(1:length(varData)).(varName)]=deal(varData{:});
 end
 
-
+nanInd = find(isnan([task_info.cell_ID]));
+task_info(nanInd)=[];
 save([dir_to '\task_info'],'task_info')
 end
 

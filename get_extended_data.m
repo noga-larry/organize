@@ -25,7 +25,7 @@ function get_extended_data(data_dir_from, data_dir_to)
 %                             Time point of Maesto trial beginning
 %         .extended_trial_length
 %                             Length of extended trial          
-
+extended_spike_times = 10;
 tasks_dir = dir(data_dir_to); tasks_dir = {tasks_dir(3:end).name};
 % run over tasks
 for tsk = 1 : length(tasks_dir)
@@ -45,7 +45,7 @@ for tsk = 1 : length(tasks_dir)
                 data.trials(tr).extended_vVel = extended.eyev;
                 data.trials(tr).extended_hVel = extended.eyeh;
                 data.trials(tr).extended_lick = extended.lick;
-                data.trials(tr).extended_spike_times = extended.sortedSpikes{data.info.electrode+(data.info.template-1)*5};
+                data.trials(tr).extended_spike_times = extended.sortedSpikes{data.info.electrode+(data.info.template-1)*extended_spike_times};
                 data.trials(tr).extended_trial_begin = extended.trial_begin_ms;
                 data.trials(tr).extended_trial_length = length(extended.eyev);
             catch ME
@@ -66,7 +66,7 @@ for tsk = 1 : length(tasks_dir)
                     data.trials(tr).extended_vVel = extended.eyev;
                     data.trials(tr).extended_hVel = extended.eyeh;
                     data.trials(tr).extended_lick = nan;
-                    data.trials(tr).extended_spike_times = extended.sortedSpikes{data.info.electrode+(data.info.template-1)*5};
+                    data.trials(tr).extended_spike_times = extended.sortedSpikes{data.info.electrode+(data.info.template-1)*total_electrode_number};
                     data.trials(tr).rwd_trace = extended.rwd;
                     data.trials(tr).extended_trial_begin = extended.trial_begin_ms;
                     data.trials(tr).extended_trial_end = extended.trial_end_ms;data.trials(tr).extended_trial_begin = extended.trial_begin_ms;
