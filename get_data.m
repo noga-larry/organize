@@ -1,4 +1,4 @@
-function get_data(task_info, dir_data_from, dir_data_to, monkey, focus_task)
+function get_data(task_info, dir_data_from, dir_data_to, monkey, focus_task, cell_type)
 % This function creates a data strucutre for each cell\session and saves
 % it. It takes different Maestro files and gathers them according to a
 % session DB. These structures are later used in almost all my
@@ -18,6 +18,7 @@ function get_data(task_info, dir_data_from, dir_data_to, monkey, focus_task)
 %           dir_data_to   Path to a folder in which to save trials
 %           monkey        Name of monkey
 %           focus_task    Task we want to get data strucutes for
+%           cel_type      (Optional) type of cell to get data strucutes for
 
 % Outputs:  The function create a directory named focus_task in
 % dir_data_to. In this folder it saves matlab structure, one for each
@@ -45,9 +46,10 @@ function get_data(task_info, dir_data_from, dir_data_to, monkey, focus_task)
 % check if there is also neural data, or behavior only
 
 discard_q = 0; % whether or not to discard cells with '?' in their type
-saccades_extraction = 0; % whether or not to look for saccades. if false,
+saccades_extraction = 1; % whether or not to look for saccades. if false,
 %                    saccades will be taken from the mark1 and mark2 fields
 %                    in the Maestro file.
+total_electrode_number =10;
 
 neuro_flag = isfield(task_info, 'cell_ID');
 
@@ -55,12 +57,20 @@ mkdir([dir_data_to '\' focus_task])
 % sub folder in which to save trials
 dir_to = [dir_data_to '\' focus_task];
 
+
 CALIBRATE_VEL = 10.8826;
 CALIBRATE_POS = 40;
 
 bool_task = strcmp({task_info.task},focus_task);
 bool_monkey = ~cellfun(@isempty,regexp({task_info.session},monkey(1:2)));
-ind_task = find(bool_task.*bool_monkey);
+if exist('cell_type','var')
+    bool_type = ~cellfun(@isempty,regexp({task_info.cell_type},cell_type));
+    ind_task = find(bool_task.*bool_monkey.*bool_type);
+else
+    ind_task = find(bool_task.*bool_monkey);
+end
+
+
 fields = fieldnames(task_info);
 
 
@@ -159,7 +169,7 @@ for ii = 1:length(ind_task)
             data.trials(f-d).maestro_name = files(trial_num(f)).name;
             data.trials(f-d).movement_onset = targetMovementOnOffSet(data_raw.targets);
             if neuro_flag
-                data.trials(f-d).spike_times = data_raw.sortedSpikes{num_e+(num_t-1)*5};
+                data.trials(f-d).spike_times = data_raw.sortedSpikes{num_e+(num_t-1)*total_electrode_number};
             end
             
             
@@ -169,7 +179,7 @@ for ii = 1:length(ind_task)
         
     end
     
-    
+   
     % check screen rotation
     rotated = [data.trials.screen_rotation]~=0;
     if any(rotated)
