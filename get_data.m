@@ -57,10 +57,6 @@ mkdir([dir_data_to '\' focus_task])
 % sub folder in which to save trials
 dir_to = [dir_data_to '\' focus_task];
 
-
-CALIBRATE_VEL = 10.8826;
-CALIBRATE_POS = 40;
-
 bool_task = strcmp({task_info.task},focus_task);
 bool_monkey = ~cellfun(@isempty,regexp({task_info.session},monkey(1:2)));
 if exist('cell_type','var')
@@ -101,7 +97,7 @@ for ii = 1:length(ind_task)
         break
     end
     
-    % take all info from excel sheet and sace it
+    % take all info from excel sheet and save it
     for f=1:numel(fields)
         data.info.(fields{f}) = task_info(ind_task(ii)).(fields{f});
     end
@@ -141,7 +137,6 @@ for ii = 1:length(ind_task)
         if ~ data_raw.discard
             flags = data_raw.key.flags;
             data.trials(f-d).name = data_raw.trialname;
-            data.trials(f-d).trial_num = trial_num(f);
             data.trials(f-d).trial_length = length(data_raw.data(1,:));
             data.trials(f-d).fail = ~bitget(flags, 3);
             data.trials(f-d).choice = bitget(flags, 5);
@@ -150,10 +145,10 @@ for ii = 1:length(ind_task)
             %  2: vertical position
             %  3: horizonal velocity
             %  4: vertical velocity
-            data.trials(f-d).hPos = data_raw.data(1,:)/CALIBRATE_POS;
-            data.trials(f-d).vPos = data_raw.data(2,:)/CALIBRATE_POS;
-            data.trials(f-d).hVel = data_raw.data(3,:)/CALIBRATE_VEL;
-            data.trials(f-d).vVel = data_raw.data(4,:)/CALIBRATE_VEL;
+%             data.trials(f-d).hPos = data_raw.data(1,:)/CALIBRATE_POS;
+%             data.trials(f-d).vPos = data_raw.data(2,:)/CALIBRATE_POS;
+%             data.trials(f-d).hVel = data_raw.data(3,:)/CALIBRATE_VEL;
+%             data.trials(f-d).vVel = data_raw.data(4,:)/CALIBRATE_VEL;
             if saccades_extraction 
                 [beginSaccade, endSaccade] = getSaccades( data.trials(f-d).hVel, data.trials(f-d).vVel,...
                     data_raw.blinks, data_raw.targets);
