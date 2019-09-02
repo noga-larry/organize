@@ -42,6 +42,7 @@ for tsk = 1 : length(tasks_dir)
             try
                 extended = importdata([data_dir_from  '\' data.info.session '\extend_trial\' data.trials(tr).maestro_name '.mat']);
                 data.trials(tr).rwd_time = getRewardTime(extended.rwd,extended.trial_begin_ms,extended.trial_end_ms);
+                data.trials(tr).rwd = extended.rwd;
                 data.trials(tr).extended_vVel = extended.eyev;
                 data.trials(tr).extended_hVel = extended.eyeh;
                 data.trials(tr).extended_lick = extended.lick;
