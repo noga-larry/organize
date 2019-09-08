@@ -67,7 +67,7 @@ fields = fieldnames(task_info);
 % check if there are two sessions in the same day - relevent only when
 % there is no devition by cell ID
 if ~neuro_flag
-    session_dates = {task_info(lines).date};
+    session_dates = {task_info(lines).session};
     repeats = zeros(size(session_dates));
     for i = 1:length(session_dates)
         repeats(i) = sum(strcmp(session_dates(1:i),session_dates(i)));
