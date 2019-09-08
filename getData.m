@@ -11,7 +11,6 @@ function task_info = getData(task_info, sup_dir_from, sup_dir_to , lines)
 %                           DB. Each row represents a session. Need to
 %                           contain the fields:
 %            .task          Name of task in session
-%            .date          Date of the session (string)
 %            .session       A string of the form 'al190430'.
 %               For behavior only data:
 %            .file_begin    Numer of first trial in session (number)
@@ -68,10 +67,10 @@ fields = fieldnames(task_info);
 % check if there are two sessions in the same day - relevent only when
 % there is no devition by cell ID
 if ~neuro_flag
-    session_dates = [task_info(ind_task).date];
+    session_dates = {task_info(lines).date};
     repeats = zeros(size(session_dates));
     for i = 1:length(session_dates)
-        repeats(i) = sum(session_dates(1:i)==session_dates(i));
+        repeats(i) = sum(strcmp(session_dates(1:i),session_dates(i)));
     end
 end
 
@@ -83,12 +82,9 @@ end
 
 
 for ii = 1:length(lines)
+  
     % subfolder from which to take trials
-    session_date = num2str(task_info(lines(ii)).date);
-    if length(session_date)<6 %important for Mati's FEF data
-        session_date = ['0' session_date];
-    end
-    dir_from = [sup_dir_from '\' task_info(lines(ii)).session ];
+    dir_from = [sup_dir_from '\' task_info(lines(ii)).session];
     
     
     if ~ (7==exist(dir_from,'dir'))
@@ -185,10 +181,10 @@ for ii = 1:length(lines)
         if neuro_flag
             display (['screen is rotated:' num2str(data.info.cell_ID)])
         else
-            display (['screen is rotated:' num2str(data.info.date)])
+            display (['screen is rotated:' num2str(data.info.session)])
         end
         if max([data.trials.screen_rotation])~=min([data.trials.screen_rotation])
-            display (['rotation change mid session:' num2str(data.info.date)])
+            display (['rotation change mid session:' num2str(data.info.session)])
         end
         
     end
@@ -199,7 +195,7 @@ for ii = 1:length(lines)
     if neuro_flag
         name = [num2str(task_info(lines(ii)).cell_ID) ' ' task_info(lines(ii)).cell_type];
     else
-        name = num2str(task_info(lines(ii)).date);
+        name = num2str(task_info(lines(ii)).session);
         if repeats(ii)>1
             name = [name '_' num2str(repeats(ii))];
         end
