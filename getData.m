@@ -1,4 +1,4 @@
-function task_info = getData(task_info, sup_dir_from, sup_dir_to , lines)
+function task_info = getData(task_info, sup_dir_from, sup_dir_to , lines, saccades_extraction)
 % This function creates a data strucutre for each cell\session and saves
 % it. It takes different Maestro files and gathers them according to a
 % session DB. These structures are later used in almost all my
@@ -28,6 +28,10 @@ function task_info = getData(task_info, sup_dir_from, sup_dir_to , lines)
 %           sup_dir_to    Path to a folder in which to save trials
 %           lines         Line numbers in task_info to comstruct data
 %                         structures for.
+%           saccades_extraction
+%                         Whether or not to look for saccades. if false,
+%                         saccades will be taken from the mark1 and mark2
+%                         fields in the Maestro file.              
 
 % Outputs:  The function creates a directory for each task in
 % sup_dir_to. In this folder it saves matlab structure, one for each
@@ -50,11 +54,6 @@ function task_info = getData(task_info, sup_dir_from, sup_dir_to , lines)
 % which contains the name the structure for the line in the DB was saved
 % under.
 
-
-
-saccades_extraction = 1; % whether or not to look for saccades. if false,
-%                    saccades will be taken from the mark1 and mark2 fields
-%                    in the Maestro file.
 total_electrode_number =10;
 extended_spike_times = 10;
 CALIBRATE_VEL = 10.8826;
