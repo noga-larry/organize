@@ -51,7 +51,6 @@ function task_info = getData(task_info, sup_dir_from, sup_dir_to , lines)
 % under. 
 
 
-% check if there is also neural data, or behavior only
 
 saccades_extraction = 1; % whether or not to look for saccades. if false,
 %                    saccades will be taken from the mark1 and mark2 fields
@@ -59,7 +58,14 @@ saccades_extraction = 1; % whether or not to look for saccades. if false,
 total_electrode_number =10;
 extended_spike_times = 10;
 CALIBRATE_VEL = 10.8826;
+
+% check if there is also neural data, or behavior only
+
 neuro_flag = isfield(task_info, 'cell_ID');
+
+% Monkey names dictionary:
+monkeyList = {'albert','chips','bissli','yoda','reggie','pluto','imonkey'};
+monkeyName =  containers.Map(cellfun(@(x) x(1:2), monkeyList, 'un', 0),monkeyList);
 
 fields = fieldnames(task_info);
 
@@ -84,7 +90,7 @@ end
 for ii = 1:length(lines)
   
     % subfolder from which to take trials
-    dir_from = [sup_dir_from '\' task_info(lines(ii)).session];
+    dir_from = [sup_dir_from '\' monkeyName(task_info(lines(ii)).session(1:2)) '\' task_info(lines(ii)).session];
     
     
     if ~ (7==exist(dir_from,'dir'))
@@ -205,7 +211,7 @@ for ii = 1:length(lines)
         name = [name ' (1)'];
     end
     
-    dir_to = [sup_dir_to '\'  task_info(lines(ii)).task];
+    dir_to = [sup_dir_to '\' monkeyName(task_info(lines(ii)).session(1:2)) '\' task_info(lines(ii)).task];
     
     % sub folder in which to save trials
     dir_to = [sup_dir_to  '\' task_info(lines(ii)).task];
