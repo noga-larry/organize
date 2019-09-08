@@ -17,9 +17,9 @@ function task_info = getData(task_info, sup_dir_from, sup_dir_to , lines)
 %            .file_end      Numer of first trial in last (number)
 %              For neural data:
 %            .fb_after_sort Numer of first trial in session (number), after
-%                           sorting. 
+%                           sorting.
 %            .fe_after_sort Numer of last trial in session (number), after
-%                           sorting. 
+%                           sorting.
 %            .electrode;    Electode number
 %            .template;  %  Template number
 
@@ -27,12 +27,12 @@ function task_info = getData(task_info, sup_dir_from, sup_dir_to , lines)
 %           sup_dir_from  Path to Maestro files
 %           sup_dir_to    Path to a folder in which to save trials
 %           lines         Line numbers in task_info to comstruct data
-%                         structures for. 
+%                         structures for.
 
 % Outputs:  The function creates a directory for each task in
 % sup_dir_to. In this folder it saves matlab structure, one for each
 % session of the task. These structures are named data and as a file in the
-% name of the session date or the cell Id and type. Each data structure 
+% name of the session date or the cell Id and type. Each data structure
 % contains a field called data.info that contain information taken from the
 % DB. It additionally contains the trials in the field data.trials:
 %       .name               Trial name as written in Maestro
@@ -48,7 +48,7 @@ function task_info = getData(task_info, sup_dir_from, sup_dir_to , lines)
 %       .movement_onset     Time of target movement onset (ms)
 % The function returns task_info with the additional feild saved_name
 % which contains the name the structure for the line in the DB was saved
-% under. 
+% under.
 
 
 
@@ -58,6 +58,8 @@ saccades_extraction = 1; % whether or not to look for saccades. if false,
 total_electrode_number =10;
 extended_spike_times = 10;
 CALIBRATE_VEL = 10.8826;
+CALIBRATE_POS = 40;
+
 
 % check if there is also neural data, or behavior only
 
@@ -80,15 +82,9 @@ if ~neuro_flag
     end
 end
 
-% make task directories
-tasks = uniqueRowsCA({task_info(lines).task}');
-for t = 1: length(tasks)
-    mkdir([ sup_dir_to '\' tasks{t}])
-end
-
 
 for ii = 1:length(lines)
-  
+    
     % subfolder from which to take trials
     dir_from = [sup_dir_from '\' monkeyName(task_info(lines(ii)).session(1:2)) '\' task_info(lines(ii)).session];
     
@@ -158,19 +154,30 @@ for ii = 1:length(lines)
                 data.trials(f-d).beginSaccade = data_raw.mark1;
                 data.trials(f-d).endSaccade = data_raw.mark2;
             end
-                        
+            
             data.trials(f-d).screen_rotation = double(data_raw.key.iPosTheta/1000);
             data.trials(f-d).maestro_name = [data.info.session data.info.trial_type sprintf('.%04d', trial_num(f))];
             
-            extended = importdata([sup_dir_from  '\' data.info.session '\extend_trial\' ...
-                data.trials(f-d).maestro_name '.mat']);
-             data.trials(f-d).rwd_time_in_extended = extended.trial_end_ms;
-
+            %             extended = importdata([sup_dir_from  '\' data.info.session '\extend_trial\' ...
+            %                 data.trials(f-d).maestro_name '.mat']);
+            %              data.trials(f-d).rwd_time_in_extended = extended.trial_end_ms;
+            
             
             if neuro_flag
                 data.trials(f-d).spike_times = data_raw.sortedSpikes{num_e+(num_t-1)*total_electrode_number};
                 data.trials(f-d).extended_spike_times = ...
                     extended.sortedSpikes{data.info.electrode+(data.info.template-1)*extended_spike_times} ;
+                
+            else
+                % get behavior
+                %  1: horizonal position
+                %  2: vertical position
+                %  3: horizonal velocity
+                %  4: vertical velocity
+                data.trials(f-d).hPos = data_raw.data(1,:)/CALIBRATE_POS;
+                data.trials(f-d).vPos = data_raw.data(2,:)/CALIBRATE_POS;
+                data.trials(f-d).hVel = data_raw.data(3,:)/CALIBRATE_VEL;
+                data.trials(f-d).vVel = data_raw.data(4,:)/CALIBRATE_VEL;
             end
             
             
@@ -210,12 +217,10 @@ for ii = 1:length(lines)
     while exist([sup_dir_to  '\' task_info(lines(ii)).task '\' name '.mat'], 'file')
         name = [name ' (1)'];
     end
-    
     dir_to = [sup_dir_to '\' monkeyName(task_info(lines(ii)).session(1:2)) '\' task_info(lines(ii)).task];
-    
+    mkdir(dir_to )
     % sub folder in which to save trials
-    dir_to = [sup_dir_to  '\' task_info(lines(ii)).task];
-    name = strtrim(name);
+    name = strtrim(name); %remove redundent spaces
     try
         save([dir_to '\' name], 'data')
     catch
