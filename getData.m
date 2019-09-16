@@ -31,7 +31,7 @@ function task_info = getData(task_info, sup_dir_from, sup_dir_to , lines, saccad
 %           saccades_extraction
 %                         Whether or not to look for saccades. if false,
 %                         saccades will be taken from the mark1 and mark2
-%                         fields in the Maestro file.              
+%                         fields in the Maestro file.
 
 % Outputs:  The function creates a directory for each task in
 % sup_dir_to. In this folder it saves matlab structure, one for each
@@ -65,22 +65,18 @@ CALIBRATE_POS = 40;
 neuro_flag = isfield(task_info, 'cell_ID');
 
 % Monkey names dictionary:
-monkeyList = {'albert','chips','bissli','yoda','reggie','pluto','imonkey'};
+monkeyList =...
+  {'albert',
+    'chips',
+    'bissli',
+    'yoda',
+    'reggie',
+    'pluto',
+    'imonkey',
+    'xtra'};
 monkeyName =  containers.Map(cellfun(@(x) x(1:2), monkeyList, 'un', 0),monkeyList);
 
 fields = fieldnames(task_info);
-
-
-% check if there are two sessions in the same day - relevent only when
-% there is no devition by cell ID
-if ~neuro_flag
-    session_dates = {task_info(lines).session};
-    repeats = zeros(size(session_dates));
-    for i = 1:length(session_dates)
-        repeats(i) = sum(strcmp(session_dates(1:i),session_dates(i)));
-    end
-end
-
 
 for ii = 1:length(lines)
     
@@ -90,7 +86,7 @@ for ii = 1:length(lines)
     
     if ~ (7==exist(dir_from,'dir'))
         disp ('Trials are not in data folder')
-        break
+        continue
     end
     
     % take all info from excel sheet and save it
@@ -126,10 +122,15 @@ for ii = 1:length(lines)
     d = 0; % counting number of discarded trials
     for f = 1:length(trial_num)
         data_raw = readcxdata(  [dir_from '\'  data.info.session data.info.trial_type sprintf('.%04d', trial_num(f))]);
-        if isempty(data_raw.discard)
-            data_raw.discard = 0;
+        
+        discard = 0; 
+        if data_raw.discard ==1 | any(data_raw.mark1==-1)| ~isempty(data_raw.marks);
+            discard = 1;
+        elseif isempty(data_raw.key)
+            discard = 1
+            disp(['Misses trial: ' dir_from '\'  data.info.session data.info.trial_type sprintf('.%04d', trial_num(f))])
         end
-        if ~ data_raw.discard
+        if ~discard
             flags = data_raw.key.flags;
             data.trials(f-d).name = data_raw.trialname;
             data.trials(f-d).trial_length = length(data_raw.data(1,:));
@@ -141,10 +142,14 @@ for ii = 1:length(lines)
             %  3: horizonal velocity
             %  4: vertical velocity
             
-            hVel = data_raw.data(3,:)/CALIBRATE_VEL;
-            vVel = data_raw.data(4,:)/CALIBRATE_VEL;
+            
+            data.trials(f-d).choice = bitget(flags, 5);
             data.trials(f-d).movement_onset = targetMovementOnOffSet(data_raw.targets);
+            data.trials(f-d).cue_onset = data_raw.targets.on{1}(1);
+            
             if saccades_extraction
+                hVel = data_raw.data(3,:)/CALIBRATE_VEL;
+                vVel = data_raw.data(4,:)/CALIBRATE_VEL;
                 [beginSaccade, endSaccade] = getSaccades(hVel,vVel,...
                     data_raw.blinks, data_raw.targets);
                 data.trials(f-d).beginSaccade = beginSaccade;
@@ -208,9 +213,7 @@ for ii = 1:length(lines)
         name = [num2str(task_info(lines(ii)).cell_ID) ' ' task_info(lines(ii)).cell_type];
     else
         name = num2str(task_info(lines(ii)).session);
-        if repeats(ii)>1
-            name = [name '_' num2str(repeats(ii))];
-        end
+
     end
     
     while exist([sup_dir_to  '\' task_info(lines(ii)).task '\' name '.mat'], 'file')
