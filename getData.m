@@ -162,15 +162,22 @@ for ii = 1:length(lines)
             data.trials(f-d).screen_rotation = double(data_raw.key.iPosTheta/1000);
             data.trials(f-d).maestro_name = [data.info.session data.info.trial_type sprintf('.%04d', trial_num(f))];
             
-            %             extended = importdata([sup_dir_from  '\' data.info.session '\extend_trial\' ...
-            %                 data.trials(f-d).maestro_name '.mat']);
-            %              data.trials(f-d).rwd_time_in_extended = extended.trial_end_ms;
+            try
+                extended = importdata([sup_dir_from  '\'  monkeyName(task_info(lines(ii)).session(1:2)) '\' data.info.session '\extend_trial\' ...
+                    data.trials(f-d).maestro_name '.mat']);
+                data.trials(f-d).rwd_time_in_extended = extended.trial_end_ms;
+                data.trials(f-d).extended_spike_times = ...
+                    extended.sortedSpikes{data.info.electrode+(data.info.template-1)*extended_spike_times} ;
+            catch
+                warning(['Extended data for ' data.trials(f-d).maestro_name ' not found']);
+
+            end
+
+            data.trials(f-d).rwd_time_in_extended = extended.trial_end_ms;
             
             
             if neuro_flag
                 data.trials(f-d).spike_times = data_raw.sortedSpikes{num_e+(num_t-1)*total_electrode_number};
-                data.trials(f-d).extended_spike_times = ...
-                    extended.sortedSpikes{data.info.electrode+(data.info.template-1)*extended_spike_times} ;
                 
             else
                 % get behavior
@@ -206,7 +213,12 @@ for ii = 1:length(lines)
         
     end
     
+    % check that there are spikes
     
+    if neuro_flag && isempty([data.trials.spike_times])
+        disp (['No spikes in cell' num2str(data.info.cell_ID) ': cell discarded'])
+        continue        
+    end
     
     % name cell data file
     if neuro_flag
@@ -220,7 +232,7 @@ for ii = 1:length(lines)
         name = [name ' (1)'];
     end
     dir_to = [sup_dir_to '\' monkeyName(task_info(lines(ii)).session(1:2)) '\' task_info(lines(ii)).task];
-    mkdir(dir_to )
+    mkdir(dir_to);
     % sub folder in which to save trials
     name = strtrim(name); %remove redundent spaces
     try
