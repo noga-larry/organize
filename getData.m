@@ -33,12 +33,13 @@ function task_info = getData(task_info, sup_dir_from, sup_dir_to , lines, saccad
 %                         saccades will be taken from the mark1 and mark2
 %                         fields in the Maestro file.
 
-% Outputs:  The function creates a directory for each task in
-% sup_dir_to. In this folder it saves matlab structure, one for each
-% session of the task. These structures are named data and as a file in the
-% name of the session date or the cell Id and type. Each data structure
-% contains a field called data.info that contain information taken from the
-% DB. It additionally contains the trials in the field data.trials:
+% Outputs:  The function creates a directory for each monkey and within it
+% a directory for  each task in sup_dir_to. In this folder it saves matlab
+% structure, one for each cell or session of the task. These structures are
+% named data and as a file in the name of the session date or the cell ID
+% and type. Each data structure contains a field called data.info that 
+% contain information taken from the DB. It additionally contains the 
+% trials in the field data.trials:
 %       .name               Trial name as written in Maestro
 %       .trial_length       Duration of trial (ms)
 %       .fail               Bollian: 1-if monkey failed trial, 0 - if
@@ -50,9 +51,19 @@ function task_info = getData(task_info, sup_dir_from, sup_dir_to , lines, saccad
 %       .screen_rotation    Angle of screen rotation
 %       .maestro_name       Name of Mastro file.
 %       .movement_onset     Time of target movement onset (ms)
+%       .rwd_time_in_extended
+%                           Time of reward delivey (from the begining
+%                           of the extended trial, ms)
+%       For neural data:  
+%       .spikes             Spike times (ms)
+%       .extended_spike_times    
+%                           Spike times in extended (ms)
+%       For behavior only:
+%       .hPos, .vPos, .hVel, .vVel
+%                           behavior traces (caliberated)
 % The function returns task_info with the additional feild saved_name
 % which contains the name the structure for the line in the DB was saved
-% under.
+% under.It also creates a feild called 
 
 total_electrode_number =10;
 extended_spike_times = 10;
@@ -77,6 +88,19 @@ monkeyList =...
 monkeyName =  containers.Map(cellfun(@(x) x(1:2), monkeyList, 'un', 0),monkeyList);
 
 fields = fieldnames(task_info);
+
+
+tasks = uniqueRowsCA({task_info(lines).task}');
+monkeys = uniqueRowsCA(cellfun(@(x) x(1:2),{task_info(lines).session},'UniformOutput',false)');
+for ii=1:length(monkeys)
+    for t = 1:length(tasks)
+        dir_to = [sup_dir_to '\' monkeyName(monkeys{ii}) '\' tasks{t}];
+        
+        mkdir(dir_to);
+        
+    end
+end
+
 
 for ii = 1:length(lines)
     
@@ -167,8 +191,9 @@ for ii = 1:length(lines)
                     data.trials(f-d).maestro_name '.mat']);
                 data.trials(f-d).rwd_time_in_extended = extended.trial_end_ms;
                 data.trials(f-d).extended_spike_times = ...
-                    extended.sortedSpikes{data.info.electrode+(data.info.template-1)*extended_spike_times} ;
-            catch
+                    extended.sortedSpikes{data.info.electrode+(data.info.template-1)*extended_spike_times};
+
+           catch
                 warning(['Extended data for ' data.trials(f-d).maestro_name ' not found']);
 
             end
@@ -232,7 +257,7 @@ for ii = 1:length(lines)
         name = [name ' (1)'];
     end
     dir_to = [sup_dir_to '\' monkeyName(task_info(lines(ii)).session(1:2)) '\' task_info(lines(ii)).task];
-    mkdir(dir_to);
+    
     % sub folder in which to save trials
     name = strtrim(name); %remove redundent spaces
     try
