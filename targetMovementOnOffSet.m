@@ -1,7 +1,18 @@
-function  [onset offset]  = targetMovementOnOffSet( targets )
-    % This function finds the beginning and end of the target movement
+function  [onset offset]  = targetMovementOnOffSet( targets, trialType )
+% This function finds the beginning and end of the target movement
+
+if ~(exist('trialType','var') == 1)
+   trialType = 'pursuit'
+end
     
-MOVMENT_TIME = 30; 
+
+switch trialType
+   case 'pursuit'
+      MOVMENT_TIME = 30; 
+   case 'saccade'
+      MOVMENT_TIME = 1; 
+end    
+    
 temp = sum(abs(targets.hvel) + abs(targets.vvel),1);
 count = 1;
 for i = 1:length(temp)

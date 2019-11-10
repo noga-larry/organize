@@ -141,6 +141,13 @@ for ii = 1:length(lines)
     end
     
     
+    % type of task for targetMovementOnset
+    if regexp(data.info.task,'pursuit|speed')
+        trialType = 'pursuit';
+    elseif regexp(data.info.task,'saccade')
+        trialType = 'saccade'
+    end
+        
     
     % get trial info
     d = 0; % counting number of discarded trials
@@ -168,7 +175,7 @@ for ii = 1:length(lines)
             
             
             data.trials(f-d).choice = bitget(flags, 5);
-            data.trials(f-d).movement_onset = targetMovementOnOffSet(data_raw.targets);
+            data.trials(f-d).movement_onset = targetMovementOnOffSet(data_raw.targets, trialType);
             data.trials(f-d).cue_onset = data_raw.targets.on{1}(1);
             
             if saccades_extraction
