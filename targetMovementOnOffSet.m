@@ -24,7 +24,7 @@ for i = 1:length(temp)
     
     if count > MOVMENT_TIME
      onset = i - MOVMENT_TIME;
-     offset = find(temp(onset:length(temp))== 0, 1) +onset - 1 ;
+     offset = find(temp(onset:length(temp))== 0, 1) + onset - 1 ;
      break
     end
 end

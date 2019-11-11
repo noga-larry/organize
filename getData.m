@@ -182,7 +182,7 @@ for ii = 1:length(lines)
                 hVel = data_raw.data(3,:)/CALIBRATE_VEL;
                 vVel = data_raw.data(4,:)/CALIBRATE_VEL;
                 [beginSaccade, endSaccade] = getSaccades(hVel,vVel,...
-                    data_raw.blinks, data_raw.targets);
+                    data_raw.blinks, data_raw.targets, trialType);
                 data.trials(f-d).beginSaccade = beginSaccade;
                 data.trials(f-d).endSaccade = endSaccade;
             else

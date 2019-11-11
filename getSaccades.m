@@ -1,4 +1,4 @@
-function [beginSaccade, endSaccade] = getSaccades( Hvel, Vvel, blinks, targets )
+function [beginSaccade, endSaccade] = getSaccades( Hvel, Vvel, blinks, targets, TrialType )
 
 % This function finds saccades and blinks in the behavioral data. It is
 % based on an old function of Mati's and is therefore a little messy. 
@@ -44,7 +44,7 @@ len = length(abs_acc);
 sacc_bool = zeros(1,len);
 in_sac = 0;
 
-[targetOnset, targetOffset] = targetMovementOnOffSet(targets);
+[targetOnset, targetOffset] = targetMovementOnOffSet(targets, TrialType);
 
  for k=1:len
     if(isempty(targetOnset) || k<targetOnset+REACT_TIME || k> targetOffset+ MOVE_RELAX)
