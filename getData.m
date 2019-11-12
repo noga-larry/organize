@@ -45,7 +45,7 @@ function task_info = getData(task_info, sup_dir_from, sup_dir_to , lines, saccad
 %       .fail               Bollian: 1-if monkey failed trial, 0 - if
 %                           monkey succeeded.
 %       .choice             Bollian: 1-if monkey chose the first target
-%                          (should be the adaptove choice), 0-else.
+%                          (should be the adaptive choice), 0-else.
 %       .beginSaccade       Beginning time points for saccased and blinks.
 %       .endSaccade         Ending time points for saccased and blinks.
 %       .screen_rotation    Angle of screen rotation
@@ -165,8 +165,8 @@ for ii = 1:length(lines)
             flags = data_raw.key.flags;
             data.trials(f-d).name = data_raw.trialname;
             data.trials(f-d).trial_length = length(data_raw.data(1,:));
-            data.trials(f-d).fail = ~bitget(flags, 3);
-            data.trials(f-d).choice = bitget(flags, 5);
+            data.trials(f-d).fail =  logical(~bitget(flags, 3));
+            data.trials(f-d).choice =  logical(bitget(flags, 5));
             % get behavior
             %  1: horizonal position
             %  2: vertical position
@@ -174,7 +174,6 @@ for ii = 1:length(lines)
             %  4: vertical velocity
             
             
-            data.trials(f-d).choice = bitget(flags, 5);
             data.trials(f-d).movement_onset = targetMovementOnOffSet(data_raw.targets, trialType);
             data.trials(f-d).cue_onset = data_raw.targets.on{1}(1);
             
@@ -193,22 +192,21 @@ for ii = 1:length(lines)
             data.trials(f-d).screen_rotation = double(data_raw.key.iPosTheta/1000);
             data.trials(f-d).maestro_name = [data.info.session data.info.trial_type sprintf('.%04d', trial_num(f))];
             
-            try
-                extended = importdata([sup_dir_from  '\'  monkeyName(task_info(lines(ii)).session(1:2)) '\' data.info.session '\extend_trial\' ...
-                    data.trials(f-d).maestro_name '.mat']);
-                data.trials(f-d).rwd_time_in_extended = extended.trial_end_ms;
-                data.trials(f-d).extended_spike_times = ...
-                    extended.sortedSpikes{data.info.electrode+(data.info.template-1)*extended_spike_times};
-
-           catch
-                warning(['Extended data for ' data.trials(f-d).maestro_name ' not found']);
-
-            end
-
-            data.trials(f-d).rwd_time_in_extended = extended.trial_end_ms;
-            
-            
             if neuro_flag
+                try
+                    extended = importdata([sup_dir_from  '\'  monkeyName(task_info(lines(ii)).session(1:2)) '\' data.info.session '\extend_trial\' ...
+                        data.trials(f-d).maestro_name '.mat']);
+                    data.trials(f-d).rwd_time_in_extended = extended.trial_end_ms;
+                    data.trials(f-d).extended_spike_times = ...
+                        extended.sortedSpikes{data.info.electrode+(data.info.template-1)*extended_spike_times};
+                    data.trials(f-d).rwd_time_in_extended = extended.trial_end_ms;
+                    
+                catch
+                    warning(['Extended data for ' data.trials(f-d).maestro_name ' not found']);
+                    
+                end
+                
+                
                 data.trials(f-d).spike_times = data_raw.sortedSpikes{num_e+(num_t-1)*total_electrode_number};
                 
             else
@@ -260,10 +258,11 @@ for ii = 1:length(lines)
 
     end
     
-    while exist([sup_dir_to  '\' task_info(lines(ii)).task '\' name '.mat'], 'file')
+    dir_to = [sup_dir_to '\' monkeyName(task_info(lines(ii)).session(1:2)) '\' task_info(lines(ii)).task];
+    while exist([dir_to '\' name '.mat'], 'file')
         name = [name ' (1)'];
     end
-    dir_to = [sup_dir_to '\' monkeyName(task_info(lines(ii)).session(1:2)) '\' task_info(lines(ii)).task];
+    
     
     % sub folder in which to save trials
     name = strtrim(name); %remove redundent spaces
