@@ -163,6 +163,7 @@ for ii = 1:length(lines)
         end
         if ~discard
             flags = data_raw.key.flags;
+            data.trials(f-d).maestro_name = [data.info.session data.info.trial_type sprintf('.%04d', trial_num(f))];
             data.trials(f-d).name = data_raw.trialname;
             data.trials(f-d).trial_length = length(data_raw.data(1,:));
             data.trials(f-d).fail =  logical(~bitget(flags, 3));
@@ -190,7 +191,6 @@ for ii = 1:length(lines)
             end
             
             data.trials(f-d).screen_rotation = double(data_raw.key.iPosTheta/1000);
-            data.trials(f-d).maestro_name = [data.info.session data.info.trial_type sprintf('.%04d', trial_num(f))];
             
             if neuro_flag
                 try
