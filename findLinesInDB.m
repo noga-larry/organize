@@ -21,7 +21,7 @@ else
     bool_grade = ones(1, length(task_info));
 end
 
-if isfield(req_params,'grade')
+if isfield(req_params,'num_trials')
     bool_nt = [task_info.num_trials] > req_params.num_trials;
 else
     bool_nt = ones(1, length(task_info));
@@ -29,7 +29,7 @@ end
 
 lines = find(bool_task & bool_type & bool_grade & bool_ID .*bool_nt);
 
-if req_params.remove_question_marks
+if isfield(req_params,'remove_question_marks') & req_params.remove_question_marks
    ind_qm = find(~cellfun(@isempty,regexp({task_info(lines).cell_type},'?')));
    lines(ind_qm) = [];
 end
