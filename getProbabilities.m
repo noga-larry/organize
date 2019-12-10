@@ -14,6 +14,6 @@ expression = '(?<=P)[0-9]*|(?<=p)[0-9]*';
 [match_p,~] = regexp({data.trials.name},expression,'match','split','forceCellOutput');
 match_p = reshape([match_p{:}],length(match_p{1}),length(match_p));
 match_p =  cellfun(@str2double,match_p);
-probabilities = unique(match_p);
-probabilities = sort(probabilities);
+probabilities = unique(match_p','rows');
+probabilities = sortrows(probabilities);
 

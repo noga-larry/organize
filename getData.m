@@ -145,7 +145,7 @@ for ii = 1:length(lines)
     if regexp(data.info.task,'pursuit|speed')
         trialType = 'pursuit';
     elseif regexp(data.info.task,'saccade')
-        trialType = 'saccade'
+        trialType = 'saccade';
     end
         
     
