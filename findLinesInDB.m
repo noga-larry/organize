@@ -27,7 +27,16 @@ else
     bool_nt = ones(1, length(task_info));
 end
 
-lines = find(bool_task & bool_type & bool_grade & bool_ID .*bool_nt);
+
+if isfield(req_params,'session')
+    bool_session = strcmp (req_params.session, {task_info.session});
+
+else
+    bool_session = ones(1, length(task_info));
+end
+
+
+lines = find(bool_task & bool_type & bool_grade & bool_ID .*bool_nt.*bool_session);
 
 if isfield(req_params,'remove_question_marks') & req_params.remove_question_marks
    ind_qm = find(~cellfun(@isempty,regexp({task_info(lines).cell_type},'?')));
