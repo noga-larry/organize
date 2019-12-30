@@ -1,0 +1,11 @@
+function [data] = getExtendedBehavior (data,maestroPath);
+
+
+b_0 = data.extended_caliberation.b_0;
+b_1 = data.extended_caliberation.b_1;
+
+for t=1:length(data.trials)
+    extended = importdata (  [maestroPath '\'  data.info.session ...
+        '\extend_trial\' data.trials(t).maestro_name '.mat']);
+    data.trials(t).extended
+end
