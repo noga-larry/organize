@@ -1,45 +1,40 @@
-function [coefH,coefV,R_squared,nt] = caliberateExtendedBehavior (maestroH,maestroV,extendedH,extendedV);
+function [b_0,b_1,R_squared,nObservetions] = caliberateExtendedBehavior ...
+    (maestroH,maestroV,extendedH,extendedV)
 
-data = getBehavior (data,maestroPath);
-maestroH = [data.trials.hPos];
-maestroV = [data.trials.vPos];
+% This function fits models between the behavioe measured in the extended
+% data and in Maestro, in order to find caliberation values.
+% Inputs:
+%               maestroH  Concatinated horizontal behavior values from
+%               Maestro.
+%               maestroV  Concatinated Vertical behavior values from
+%               Maestro. 
+%               extendedH Concatinated horizontal behavior values from
+%               the extended data.
+%               maestroV  Concatinated Vertical behavior values from
+%                         the extended data.
+% Important Note: blinks must be replaced with nans in all inputs!
+% Outputs:      b_0       Intercept values b_0(1) - horizontal; b_0(2) - 
+%                         vertical
+%               b_1       Slop values b_1(1) - horizontal; b_1(2) - 
+%                         vertical
+%               R_squared R_squared values R_squared (1) - horizontal;
+%                         R_squared (2) - vertical
+%               nObservetions
+%                         Number od observation used to fit the models. 
 
-extendedH = [];
-extendedV = [];
 
-for t =1:length(data.trials)
-extended = importdata (  [maestroPath '\'  data.info.session ...
-   '\extend_trial\' data.trials(t).maestro_name '.mat']);
+mdl = fitlm(extendedH,maestroH);
+b_0(1) = mdl.Coefficients.Estimate(1);
+b_1(1) = mdl.Coefficients.Estimate(2);
+R_squared(1) = mdl.Rsquared.Ordinary;
 
+mdl = fitlm(extendedV,maestroV);
+b_0(2) = mdl.Coefficients.Estimate(1);
+b_1(2) = mdl.Coefficients.Estimate(2);
+R_squared(2) = mdl.Rsquared.Ordinary;
 
-data.trials(t).extended_hPos = extended.eyeh;
-data.trials(t).extended_vPos = extended.eyev;
+nObservetions = mdl.NumObservations; 
 
-extendedH = [extendedH; extended.eyeh(extended.trial_begin_ms:(extended.trial_end_ms-1))];
-extendedV = [extendedV; extended.eyev(extended.trial_begin_ms:(extended.trial_end_ms-1))];
 
 end
 
-mdlH = fitlm(extendedH,maestroH);
-a = mdlH.Coefficients.Estimate(1);
-b = mdlH.Coefficients.Estimate(2);
-extendedH = extendedH*b+a;
-
-mdlH = fitlm(extendedV,maestroV);
-a = mdlH.Coefficients.Estimate(1);
-b = mdlH.Coefficients.Estimate(2);
-extendedV = extendedV*b+a;
-
-extendedH(extendedH>20) = NaN; extendedH(extendedH<-20) = NaN;
-extendedV(extendedV>20) = NaN; extendedV(extendedV<-20) = NaN;
-
-maestroH(maestroH>20) = NaN; maestroH(maestroH<-20) = NaN;
-maestroV(maestroV>20) = NaN; maestroV(maestroV<-20) = NaN;
-
-mdlH = fitlm(extendedH,maestroH);
-a = mdlH.Coefficients.Estimate(1);
-b = mdlH.Coefficients.Estimate(2);
-
-mdlH = fitlm(extendedH,maestroH);
-a = mdlH.Coefficients.Estimate(1);
-b = mdlH.Coefficients.Estimate(2);

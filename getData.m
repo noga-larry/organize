@@ -37,8 +37,8 @@ function task_info = getData(task_info, sup_dir_from, sup_dir_to , lines, saccad
 % a directory for  each task in sup_dir_to. In this folder it saves matlab
 % structure, one for each cell or session of the task. These structures are
 % named data and as a file in the name of the session date or the cell ID
-% and type. Each data structure contains a field called data.info that 
-% contain information taken from the DB. It additionally contains the 
+% and type. Each data structure contains a field called data.info that
+% contain information taken from the DB. It additionally contains the
 % trials in the field data.trials:
 %       .name               Trial name as written in Maestro
 %       .trial_length       Duration of trial (ms)
@@ -54,21 +54,33 @@ function task_info = getData(task_info, sup_dir_from, sup_dir_to , lines, saccad
 %       .rwd_time_in_extended
 %                           Time of reward delivey (from the begining
 %                           of the extended trial, ms)
-%       For neural data:  
+%       For neural data:
 %       .spikes             Spike times (ms)
-%       .extended_spike_times    
+%       .extended_spike_times
 %                           Spike times in extended (ms)
 %       For behavior only:
 %       .hPos, .vPos, .hVel, .vVel
 %                           behavior traces (caliberated)
+% The field extended_caliberation contains information that can be usd to
+% caliberate the extended data behavior:
+%      .b_0                 Intercept values b_0(1) - horizontal; b_0(2) - 
+%                           vertical
+%      .b_1                 Slop values b_1(1) - horizontal; b_1(2) - 
+%                           vertical
+%      .R_squared           R_squared values R_squared (1) - horizontal;
+%                           R_squared (2) - vertical
+%      .nObservetions       Number od observation used to fit the models.
+%                          
 % The function returns task_info with the additional feild saved_name
 % which contains the name the structure for the line in the DB was saved
-% under.It also creates a feild called 
+% under.
+% 
 
 total_electrode_number =10;
 extended_spike_times = 10;
 CALIBRATE_VEL = 10.8826;
 CALIBRATE_POS = 40;
+blink_margin = 70; %ms
 
 
 % check if there is also neural data, or behavior only
@@ -77,7 +89,7 @@ neuro_flag = isfield(task_info, 'cell_ID');
 
 % Monkey names dictionary:
 monkeyList =...
-  {'albert',
+    {'albert',
     'chips',
     'bissli',
     'yoda',
@@ -147,19 +159,26 @@ for ii = 1:length(lines)
     elseif regexp(data.info.task,'saccade')
         trialType = 'saccade';
     end
-        
+    
+    
+    % pre allocation for extended data calibaretion
+    extendedH = [];
+    extendedV = [];
+    maestroH = [];
+    maestroV = [];
+    
     
     % get trial info
     d = 0; % counting number of discarded trials
     for f = 1:length(trial_num)
         data_raw = readcxdata(  [dir_from '\'  data.info.session data.info.trial_type sprintf('.%04d', trial_num(f))]);
         
-        discard = 0; 
+        discard = 0;
         if data_raw.discard ==1 | any(data_raw.mark1==-1)| ~isempty(data_raw.marks);
             discard = 1;
         elseif isempty(data_raw.key)
-            discard = 1
-            disp(['Misses trial: ' dir_from '\'  data.info.session data.info.trial_type sprintf('.%04d', trial_num(f))])
+            discard = 1;
+            disp(['Missing trial: ' dir_from '\'  data.info.session data.info.trial_type sprintf('.%04d', trial_num(f))])
         end
         if ~discard
             flags = data_raw.key.flags;
@@ -191,21 +210,8 @@ for ii = 1:length(lines)
             end
             
             data.trials(f-d).screen_rotation = double(data_raw.key.iPosTheta/1000);
-            
+             
             if neuro_flag
-                try
-                    extended = importdata([sup_dir_from  '\'  monkeyName(task_info(lines(ii)).session(1:2)) '\' data.info.session '\extend_trial\' ...
-                        data.trials(f-d).maestro_name '.mat']);
-                    data.trials(f-d).rwd_time_in_extended = extended.trial_end_ms;
-                    data.trials(f-d).extended_spike_times = ...
-                        extended.sortedSpikes{data.info.electrode+(data.info.template-1)*extended_spike_times};
-                    data.trials(f-d).rwd_time_in_extended = extended.trial_end_ms;
-                    
-                catch
-                    warning(['Extended data for ' data.trials(f-d).maestro_name ' not found']);
-                    
-                end
-                
                 
                 data.trials(f-d).spike_times = data_raw.sortedSpikes{num_e+(num_t-1)*total_electrode_number};
                 
@@ -220,14 +226,64 @@ for ii = 1:length(lines)
                 data.trials(f-d).hVel = data_raw.data(3,:)/CALIBRATE_VEL;
                 data.trials(f-d).vVel = data_raw.data(4,:)/CALIBRATE_VEL;
             end
-            
-            
+                                   
+            try
+                extended = importdata([sup_dir_from  '\'  monkeyName(task_info(lines(ii)).session(1:2)) '\' data.info.session '\extend_trial\' ...
+                    data.trials(f-d).maestro_name '.mat']);
+                
+                data.trials(f-d).rwd_time_in_extended = extended.trial_end_ms;
+                if neuro_flag
+                    data.trials(f-d).extended_spike_times = ...
+                        extended.sortedSpikes{data.info.electrode+(data.info.template-1)*extended_spike_times};
+                end
+                
+                % values for extended data caliberation
+                
+                exHraw = extended.eyeh(extended.trial_begin_ms:(extended.trial_end_ms-1));
+                exVraw = extended.eyev(extended.trial_begin_ms:(extended.trial_end_ms-1));
+                maeHraw = data_raw.data(1,:)/CALIBRATE_POS;
+                maeVraw = data_raw.data(2,:)/CALIBRATE_POS;
+                
+                assert(length(exHraw)==length( data_raw.data(1,:)))
+                
+                blinkBegin = max(data_raw.blinks(1:2:end)-blink_margin,1);
+                blinkEnd = min(data_raw.blinks(2:2:end)+blink_margin,length(maeVraw));
+                
+                exHraw = removesSaccades(exHraw,blinkBegin,blinkEnd);
+                exVraw = removesSaccades(exVraw,blinkBegin,blinkEnd);
+                maeHraw = removesSaccades(maeHraw,blinkBegin,blinkEnd);
+                maeVraw = removesSaccades(maeVraw,blinkBegin,blinkEnd);
+               
+                extendedH = [extendedH; exHraw];
+                extendedV = [extendedV; exVraw];
+                maestroH = [maestroH, maeHraw];
+                maestroV = [maestroV, maeVraw];
+                
+                
+            catch
+                warning(['Extended data for ' data.trials(f-d).maestro_name ' not found']);
+                
+            end
         else
             d = d+1;
         end
         
     end
     
+    % caliberate extended behavior
+    
+    [b_0,b_1,R_squared,nObservetions] = caliberateExtendedBehavior (maestroH,maestroV,extendedH,extendedV);
+    
+    if any(R_squared<0.99) | nObservetions < 30000
+        warning(['Problem with extended behavior caliberation in cell %s: '...
+        'R_squared = %d, %f.; nObservetions = %g'],num2str(data.info.cell_ID)...
+        ,R_squared(1),R_squared(2),nObservetions)
+    end
+    
+    data.extended_caliberation.nt = nObservetions;
+    data.extended_caliberation.b_0 = b_0;
+    data.extended_caliberation.b_1 = b_1;
+    data.extended_caliberation.R_squared = R_squared;
     
     % check screen rotation
     rotated = [data.trials.screen_rotation]~=0;
@@ -247,7 +303,7 @@ for ii = 1:length(lines)
     
     if neuro_flag && isempty([data.trials.spike_times])
         disp (['No spikes in cell' num2str(data.info.cell_ID) ': cell discarded'])
-        continue        
+        continue
     end
     
     % name cell data file
@@ -255,7 +311,7 @@ for ii = 1:length(lines)
         name = [num2str(task_info(lines(ii)).cell_ID) ' ' task_info(lines(ii)).cell_type];
     else
         name = num2str(task_info(lines(ii)).session);
-
+        
     end
     
     dir_to = [sup_dir_to '\' monkeyName(task_info(lines(ii)).session(1:2)) '\' task_info(lines(ii)).task];
