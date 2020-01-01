@@ -188,15 +188,16 @@ for ii = 1:length(lines)
             %  3: horizonal velocity
             %  4: vertical velocity
             
-            
-            data.trials(f-d).movement_onset = targetMovementOnOffSet(data_raw.targets, trialType);
+            [targetOnset, targetOffset] = ...
+                targetMovementOnOffSet(data_raw.targets, trialType);
+            data.trials(f-d).movement_onset = targetOnset;
             data.trials(f-d).cue_onset = data_raw.targets.on{1}(1);
             
             if saccades_extraction
                 hVel = data_raw.data(3,:)/CALIBRATE_VEL;
                 vVel = data_raw.data(4,:)/CALIBRATE_VEL;
                 [beginSaccade, endSaccade] = getSaccades(hVel,vVel,...
-                    data_raw.blinks, data_raw.targets, trialType);
+                    data_raw.blinks, targetOnset, targetOffset);
                 data.trials(f-d).beginSaccade = beginSaccade;
                 data.trials(f-d).endSaccade = endSaccade;
             else

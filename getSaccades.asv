@@ -1,4 +1,4 @@
-function [beginSaccade, endSaccade] = getSaccades( Hvel, Vvel, blinks, targetOnset, targetOffset )
+function [beginSaccade, endSaccade] = getSaccades( Hvel, Vvel, blinks, targets, TrialType )
 
 % This function finds saccades and blinks in the behavioral data. It is
 % based on an old function of Mati's and is therefore a little messy. 
@@ -6,10 +6,8 @@ function [beginSaccade, endSaccade] = getSaccades( Hvel, Vvel, blinks, targetOns
 %          Vvel      Vertical vellocity trace
 %          blinks    Maestro's matrix of blinks (data.blinks), beginning   
 %                    and end points.
-%          targetOnset   
-%                    Time of traget movement onset
-%          targetOffset  
-%                    Time of traget movement offset
+%          targets   Maestro's data.targets structure. Used to change the
+%                    criteria for determining that there was a saccade.
 % Outputs: beginSaccade 
 %                    Time point of saccades beginnings
 %          endSaccade 
@@ -45,6 +43,8 @@ abs_acc = [0 abs_acc']; % dummy
 len = length(abs_acc);
 sacc_bool = zeros(1,len);
 in_sac = 0;
+
+[targetOnset, targetOffset] = targetMovementOnOffSet(targets, TrialType);
 
  for k=1:len
     if(isempty(targetOnset) || k<targetOnset+REACT_TIME || k> targetOffset+ MOVE_RELAX)
