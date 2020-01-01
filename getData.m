@@ -160,19 +160,14 @@ for ii = 1:length(lines)
         trialType = 'saccade';
     end
     
-    
-    % pre allocation for extended data calibaretion
-    extendedH = [];
-    extendedV = [];
-    maestroH = [];
-    maestroV = [];
-    
+   
     
     % get trial info
     d = 0; % counting number of discarded trials
     for f = 1:length(trial_num)
-        data_raw = readcxdata(  [dir_from '\'  data.info.session data.info.trial_type sprintf('.%04d', trial_num(f))]);
         
+        data_raw = readcxdata(  [dir_from '\'  data.info.session data.info.trial_type sprintf('.%04d', trial_num(f))]);
+       
         discard = 0;
         if data_raw.discard ==1 | any(data_raw.mark1==-1)| ~isempty(data_raw.marks);
             discard = 1;
@@ -246,18 +241,18 @@ for ii = 1:length(lines)
                 
                 assert(length(exHraw)==length( data_raw.data(1,:)))
                 
-                blinkBegin = max(data_raw.blinks(1:2:end)-blink_margin,1);
-                blinkEnd = min(data_raw.blinks(2:2:end)+blink_margin,length(maeVraw));
-                
-                exHraw = removesSaccades(exHraw,blinkBegin,blinkEnd);
-                exVraw = removesSaccades(exVraw,blinkBegin,blinkEnd);
-                maeHraw = removesSaccades(maeHraw,blinkBegin,blinkEnd);
-                maeVraw = removesSaccades(maeVraw,blinkBegin,blinkEnd);
+                nanBegin = max(data_raw.blinks(1:2:end)-blink_margin,1);
+                nanEnd = min(data_raw.blinks(2:2:end)+blink_margin,length(maeVraw));
+                               
+                exHraw = removesSaccades(exHraw,nanBegin,nanEnd);
+                exVraw = removesSaccades(exVraw,nanBegin,nanEnd);
+                maeHraw = removesSaccades(maeHraw,nanBegin,nanEnd);
+                maeVraw = removesSaccades(maeVraw,nanBegin,nanEnd);
                
-                extendedH = [extendedH; exHraw];
-                extendedV = [extendedV; exVraw];
-                maestroH = [maestroH, maeHraw];
-                maestroV = [maestroV, maeVraw];
+                extendedH{f-d} = exHraw';
+                extendedV{f-d} = exVraw';
+                maestroH{f-d} = maeHraw;
+                maestroV{f-d} = maeVraw;
                 
                 
             catch
@@ -272,13 +267,15 @@ for ii = 1:length(lines)
     
     % caliberate extended behavior
     
-    [b_0,b_1,R_squared,nObservetions] = caliberateExtendedBehavior (maestroH,maestroV,extendedH,extendedV);
+    [b_0,b_1,R_squared,nObservetions] = caliberateExtendedBehavior...
+        ([maestroH{:}],[maestroV{:}],[extendedH{:}],[extendedV{:}]);
     
-    if any(R_squared<0.99) | nObservetions < 30000
+    extended_behavior_fit = any(R_squared<0.99) | nObservetions < 30000;
+    if extended_behavior_fit
         warning(['Problem with extended behavior caliberation in cell %s: '...
-        'R_squared = %d, %f.; nObservetions = %g'],num2str(data.info.cell_ID)...
-        ,R_squared(1),R_squared(2),nObservetions)
-    end
+            'R_squared = %d, %f.; nObservetions = %g'],num2str(data.info.cell_ID)...
+            ,R_squared(1),R_squared(2),nObservetions)
+          end
     
     data.extended_caliberation.nt = nObservetions;
     data.extended_caliberation.b_0 = b_0;
@@ -343,8 +340,9 @@ for ii = 1:length(lines)
     % Create mata-data information structure:
     task_info(lines(ii)).save_name = name;
     task_info(lines(ii)).num_trials = length(data.trials);
+    task_info(lines(ii)).extended_behavior_fit = extended_behavior_fit;
     
-    clear data
+    clear data extendedH extendedV maestroH maestroV
     
     if mod(ii,50)==0
         disp([num2str(ii) '\' num2str(length(lines))])
