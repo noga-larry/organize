@@ -83,8 +83,8 @@ for k=1:size(blinks,1)
 end
 % convert to markers
     
-% the purpose of the added 0s id that if the trial begins or end in a
-% saccade the saccade in the beging will be maked as i it began on 1
+% the purpose of the added 0s is that if the trial begins or end in a
+% saccade the saccade in the beging will be maked as if it began on 1
 % and in the end in the last bin. 
 beginSaccade_raw = find(diff([0, sacc_bool, 0]) == 1) -1;
 endSaccade_raw = find(diff([0, sacc_bool, 0]) == - 1) -1;
