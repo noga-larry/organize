@@ -76,7 +76,7 @@ function task_info = getData(task_info, sup_dir_from, sup_dir_to , lines, saccad
 % under.
 % 
 
-total_electrode_number =10;
+total_electrode_number = 10;
 extended_spike_times = 10;
 CALIBRATE_VEL = 10.8826;
 CALIBRATE_POS = 40;
@@ -192,6 +192,10 @@ for ii = 1:length(lines)
                 targetMovementOnOffSet(data_raw.targets, trialType);
             data.trials(f-d).movement_onset = targetOnset;
             data.trials(f-d).cue_onset = data_raw.targets.on{1}(1);
+            
+            data.trials(f-d).blinkBegin = max(1,data_raw.blinks(1:2:end));
+            data.trials(f-d).blinkEnd = min(data_raw.blinks(2:2:end),data.trials(f-d).trial_length);
+                
             
             if saccades_extraction
                 hVel = data_raw.data(3,:)/CALIBRATE_VEL;

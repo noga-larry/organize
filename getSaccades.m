@@ -65,22 +65,7 @@ in_sac = 0;
     sacc_bool(k) = in_sac;
  end
  
-% add blinks     
-for k=1:size(blinks,1)
-    if(blinks(k,2)- blinks(k,1) < MIN_BLINK_LENGTH)
-        continue;
-    end
-    b_init = blinks(k,1);
-    if(b_init <=0)
-       b_init=1;
-    end
-    b_end = blinks(k,2);
-    if(b_end>len)
-    b_end = len;
-    end
-    sacc_bool(b_init:b_end) =1;
-            
-end
+
 % convert to markers
     
 % the purpose of the added 0s is that if the trial begins or end in a
