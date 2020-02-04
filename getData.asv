@@ -81,6 +81,7 @@ defaultNumElectrodes = 5;
 addOptional(p,'numElectrodes',defaultNumElectrodes,@isnumeric);
 defaultSaccadesExtraction = true;
 addOptional(p,'saccadesExtraction',defaultSaccadesExtraction,@islogical);
+defaultSaccadesExtraction = true;
 
 parse(p,varargin{:})
 saccadesExtraction = p.Results.saccadesExtraction;
@@ -89,8 +90,8 @@ totalElectrodeNumber = p.Results.numElectrodes;
 CALIBRATE_VEL = 10.8826;
 CALIBRATE_POS = 40;
 
-blinkMargin = 70; %ms
-rwdThreshold = 1000;
+blink_margin = 70; %ms
+rwd_threshold = 1000;
 
 
 
@@ -245,7 +246,7 @@ for ii = 1:length(lines)
                     data.trials(f-d).maestro_name '.mat']);
                 
                 data.trials(f-d).rwd_time_in_extended = extended.trial_end_ms;
-                data.trials(f-d).previous_completed = any(extended.rwd(1:extended.trial_begin_ms) > rwdThreshold);
+                data.trials(f-d).previous_completed = any(extended.rwd(1:extended.trial_begin_ms) > rwd_threshold);
                 if neuro_flag
                     data.trials(f-d).extended_spike_times = ...
                         extended.sortedSpikes{data.info.electrode+(data.info.template-1)*totalElectrodeNumber};
@@ -260,8 +261,8 @@ for ii = 1:length(lines)
                 
                 assert(length(exHraw)==length( data_raw.data(1,:)))
                 
-                nanBegin = max(data_raw.blinks(1:2:end)-blinkMargin,1);
-                nanEnd = min(data_raw.blinks(2:2:end)+blinkMargin,length(maeVraw));
+                nanBegin = max(data_raw.blinks(1:2:end)-blink_margin,1);
+                nanEnd = min(data_raw.blinks(2:2:end)+blink_margin,length(maeVraw));
                                
                 exHraw = removesSaccades(exHraw,nanBegin,nanEnd);
                 exVraw = removesSaccades(exVraw,nanBegin,nanEnd);
