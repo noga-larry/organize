@@ -9,5 +9,5 @@ for t = 1:length(data.trials)
     extended = importdata (  [MaestroPath '\'  data.info.session ...
         '\extend_trial\' data.trials(t).maestro_name '.mat']);
     data.trials(t).previous_completed = any(extended.rwd(1:extended.trial_begin_ms) > threshold);
-    
+    plot(extended.rwd); hold on
 end

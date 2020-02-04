@@ -1,11 +1,13 @@
 function [data] = getExtendedBehavior (data,maestroPath)
 
-blink_threshold = 25; %deg/s
+blink_threshold = 25; % deg
+blink_margin = 100; % ms
+
 
 b_0 = data.extended_caliberation.b_0;
 b_1 = data.extended_caliberation.b_1;
 
-% data = getBehavior (data,maestroPath);
+data = getBehavior (data,maestroPath);
 
 
 for t=1:length(data.trials)
@@ -26,30 +28,43 @@ for t=1:length(data.trials)
         changes = find(diff([-70 ind])>1);
         blinkBegin = ind(changes);
         blinkEnd = [ind(changes(2:end)), ind(length(ind))];
+        blinkBegin = max(blinkBegin-blink_margin,1);
+        blinkEnd = min(blinkEnd+blink_margin, length(data.trials(t).extended_vPos));
     end
     data.trials(t).extended_blink_begin = blinkBegin;
     data.trials(t).extended_blink_end = blinkEnd;
-
-
     
+    blinks = sort ([blinkBegin,blinkEnd]);
+    targetOffset = data.trials(t).movement_onset +750;
+    [beginSaccade, endSaccade] = ...
+        getSaccades(data.trials(t).extended_hVel,...
+        data.trials(t).extended_vVel, blinks, data.trials(t).movement_onset, targetOffset);
     
+    data.trials(t).extended_saccade_begin = beginSaccade;
+    data.trials(t).extended_saccade_end = endSaccade;
     
-    
-    ts = data.trials(t).extended_trial_begin:(data.trials(t).rwd_time_in_extended-1);
-    
-    subplot(1,2,1)
-    plot(data.trials(t).extended_hPos,'b'); hold on
-    plot(ts,data.trials(t).hPos,'r');
-    plot(blinkBegin,data.trials(t).extended_hPos(blinkBegin),'o')
-    plot(blinkEnd,data.trials(t).extended_hPos(blinkEnd),'o'); hold off
-    
-    
-    subplot(1,2,2)
-    plot(data.trials(t).extended_vPos,'b'); hold on
-    plot(ts,data.trials(t).vPos,'r');
-    plot(blinkBegin,data.trials(t).extended_vPos(blinkBegin),'o')
-    plot(blinkEnd,data.trials(t).extended_vPos(blinkEnd),'o'); hold off
-    
+%     ts = data.trials(t).extended_trial_begin:(data.trials(t).rwd_time_in_extended-1);
+%     
+%     subplot(1,2,1)
+%     plot(data.trials(t).extended_hPos,'b'); hold on
+%     plot(ts,data.trials(t).hPos,'r');
+%     plot(beginSaccade,data.trials(t).extended_hPos(beginSaccade),'o')
+%     plot(endSaccade,data.trials(t).extended_hPos(endSaccade),'o'); 
+%     
+%     plot(blinkBegin,data.trials(t).extended_hPos(blinkBegin),'*')
+%     plot(blinkEnd,data.trials(t).extended_hPos(blinkEnd),'*'); hold off
+%     
+%     
+%     
+%     subplot(1,2,2)
+%     plot(data.trials(t).extended_vPos,'b'); hold on
+%     plot(ts,data.trials(t).vPos,'r');
+%     plot(beginSaccade,data.trials(t).extended_vPos(beginSaccade),'o')
+%     plot(endSaccade,data.trials(t).extended_vPos(endSaccade),'o');
+%     
+%     
+%     plot(blinkBegin,data.trials(t).extended_vPos(blinkBegin),'*')
+%     plot(blinkEnd,data.trials(t).extended_vPos(blinkEnd),'*'); hold off
     
 end
 

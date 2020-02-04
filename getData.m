@@ -76,11 +76,13 @@ function task_info = getData(task_info, sup_dir_from, sup_dir_to , lines, saccad
 % under.
 % 
 
-total_electrode_number = 10;
-extended_spike_times = 10;
+total_electrode_number = 5;
+extended_spike_times = 5;
 CALIBRATE_VEL = 10.8826;
 CALIBRATE_POS = 40;
 blink_margin = 70; %ms
+rwd_threshold = 1000;
+
 
 
 % check if there is also neural data, or behavior only
@@ -103,15 +105,14 @@ fields = fieldnames(task_info);
 
 
 tasks = uniqueRowsCA({task_info(lines).task}');
-monkeys = uniqueRowsCA(cellfun(@(x) x(1:2),{task_info(lines).session},'UniformOutput',false)');
-for ii=1:length(monkeys)
-    for t = 1:length(tasks)
-        dir_to = [sup_dir_to '\' monkeyName(monkeys{ii}) '\' tasks{t}];
-        
-        mkdir(dir_to);
-        
-    end
+
+for t = 1:length(tasks)
+    dir_to = [sup_dir_to  '\' tasks{t}];
+    
+    mkdir(dir_to);
+    
 end
+
 
 
 for ii = 1:length(lines)
@@ -129,6 +130,7 @@ for ii = 1:length(lines)
     for f=1:numel(fields)
         data.info.(fields{f}) = task_info(lines(ii)).(fields{f});
     end
+    data.info.monkey = monkeyName(task_info(lines(ii)).session(1:2));
     
     
     % run over trials and save them
@@ -158,6 +160,8 @@ for ii = 1:length(lines)
         trialType = 'pursuit';
     elseif regexp(data.info.task,'saccade')
         trialType = 'saccade';
+    else
+        trialType = 'pursuit';        
     end
     
    
@@ -232,6 +236,7 @@ for ii = 1:length(lines)
                     data.trials(f-d).maestro_name '.mat']);
                 
                 data.trials(f-d).rwd_time_in_extended = extended.trial_end_ms;
+                data.trials(f-d).previous_completed = any(extended.rwd(1:extended.trial_begin_ms) > rwd_threshold);
                 if neuro_flag
                     data.trials(f-d).extended_spike_times = ...
                         extended.sortedSpikes{data.info.electrode+(data.info.template-1)*extended_spike_times};
@@ -316,7 +321,7 @@ for ii = 1:length(lines)
         
     end
     
-    dir_to = [sup_dir_to '\' monkeyName(task_info(lines(ii)).session(1:2)) '\' task_info(lines(ii)).task];
+    dir_to = [sup_dir_to '\'  task_info(lines(ii)).task];
     while exist([dir_to '\' name '.mat'], 'file')
         name = [name ' (1)'];
     end
