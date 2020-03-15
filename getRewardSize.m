@@ -1,4 +1,4 @@
-function 
+function [sizes,match_s] = getRewardSize(data)
 % This function finds all target reward probabilities in data based on
 % trial names.
 % Inputs:     data           A structure containig session trials
