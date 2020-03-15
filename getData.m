@@ -63,36 +63,40 @@ function task_info = getData(task_info, sup_dir_from, sup_dir_to , lines, vararg
 %                           behavior traces (caliberated)
 % The field extended_caliberation contains information that can be usd to
 % caliberate the extended data behavior:
-%      .b_0                 Intercept values b_0(1) - horizontal; b_0(2) - 
+%      .b_0                 Intercept values b_0(1) - horizontal; b_0(2) -
 %                           vertical
-%      .b_1                 Slop values b_1(1) - horizontal; b_1(2) - 
+%      .b_1                 Slop values b_1(1) - horizontal; b_1(2) -
 %                           vertical
 %      .R_squared           R_squared values R_squared (1) - horizontal;
 %                           R_squared (2) - vertical
 %      .nObservetions       Number od observation used to fit the models.
-%                          
+%
 % The function returns task_info with the additional feild saved_name
 % which contains the name the structure for the line in the DB was saved
 % under.
-% 
+%
 
 p = inputParser;
 defaultNumElectrodes = 5;
 addOptional(p,'numElectrodes',defaultNumElectrodes,@isnumeric);
 defaultSaccadesExtraction = true;
 addOptional(p,'saccadesExtraction',defaultSaccadesExtraction,@islogical);
+defaultExtendedExist = true;
+addOptional(p,'extendedExist',defaultExtendedExist,@islogical);
+defaultIncludeBehavior = false;
+addOptional(p,'includeBehavior',defaultIncludeBehavior,@islogical);
 
 parse(p,varargin{:})
 saccadesExtraction = p.Results.saccadesExtraction;
 totalElectrodeNumber = p.Results.numElectrodes;
+extendedExist = p.Results.extendedExist;
+includeBehavior = p.Results.includeBehavior;
 
 CALIBRATE_VEL = 10.8826;
 CALIBRATE_POS = 40;
 
 blinkMargin = 70; %ms
 rwdThreshold = 1000;
-
-
 
 % check if there is also neural data, or behavior only
 
@@ -170,17 +174,17 @@ for ii = 1:length(lines)
     elseif regexp(data.info.task,'saccade')
         trialType = 'saccade';
     else
-        trialType = 'pursuit';        
+        trialType = 'pursuit';
     end
     
-   
+    
     
     % get trial info
     d = 0; % counting number of discarded trials
     for f = 1:length(trial_num)
         
         data_raw = readcxdata(  [dir_from '\'  data.info.session data.info.trial_type sprintf('.%04d', trial_num(f))]);
-       
+        
         discard = 0;
         if data_raw.discard ==1 | any(data_raw.mark1==-1)| ~isempty(data_raw.marks);
             discard = 1;
@@ -208,7 +212,7 @@ for ii = 1:length(lines)
             
             data.trials(f-d).blinkBegin = max(1,data_raw.blinks(1:2:end));
             data.trials(f-d).blinkEnd = min(data_raw.blinks(2:2:end),data.trials(f-d).trial_length);
-                
+            
             
             if saccadesExtraction
                 hVel = data_raw.data(3,:)/CALIBRATE_VEL;
@@ -223,12 +227,13 @@ for ii = 1:length(lines)
             end
             
             data.trials(f-d).screen_rotation = double(data_raw.key.iPosTheta/1000);
-             
+            
             if neuro_flag
                 
                 data.trials(f-d).spike_times = data_raw.sortedSpikes{num_e+(num_t-1)*totalElectrodeNumber};
+            end
                 
-            else
+            if includeBehavior | ~neuro_flag 
                 % get behavior
                 %  1: horizonal position
                 %  2: vertical position
@@ -239,44 +244,46 @@ for ii = 1:length(lines)
                 data.trials(f-d).hVel = data_raw.data(3,:)/CALIBRATE_VEL;
                 data.trials(f-d).vVel = data_raw.data(4,:)/CALIBRATE_VEL;
             end
-                                   
-            try
-                extended = importdata([sup_dir_from  '\'  monkeyName(task_info(lines(ii)).session(1:2)) '\' data.info.session '\extend_trial\' ...
-                    data.trials(f-d).maestro_name '.mat']);
-                
-                data.trials(f-d).rwd_time_in_extended = extended.trial_end_ms;
-                data.trials(f-d).previous_completed = any(extended.rwd(1:extended.trial_begin_ms) > rwdThreshold);
-                if neuro_flag
-                    data.trials(f-d).extended_spike_times = ...
-                        extended.sortedSpikes{data.info.electrode+(data.info.template-1)*totalElectrodeNumber};
+            
+            if extendedExist
+                try
+                    extended = importdata([sup_dir_from  '\'  monkeyName(task_info(lines(ii)).session(1:2)) '\' data.info.session '\extend_trial\' ...
+                        data.trials(f-d).maestro_name '.mat']);
+                    
+                    data.trials(f-d).rwd_time_in_extended = extended.trial_end_ms;
+                    data.trials(f-d).previous_completed = any(extended.rwd(1:extended.trial_begin_ms) > rwdThreshold);
+                    if neuro_flag
+                        data.trials(f-d).extended_spike_times = ...
+                            extended.sortedSpikes{data.info.electrode+(data.info.template-1)*totalElectrodeNumber};
+                    end
+                    
+                    % values for extended data caliberation
+                    
+                    exHraw = extended.eyeh(extended.trial_begin_ms:(extended.trial_end_ms-1));
+                    exVraw = extended.eyev(extended.trial_begin_ms:(extended.trial_end_ms-1));
+                    maeHraw = data_raw.data(1,:)/CALIBRATE_POS;
+                    maeVraw = data_raw.data(2,:)/CALIBRATE_POS;
+                    
+                    assert(length(exHraw)==length( data_raw.data(1,:)))
+                    
+                    nanBegin = max(data_raw.blinks(1:2:end)-blinkMargin,1);
+                    nanEnd = min(data_raw.blinks(2:2:end)+blinkMargin,length(maeVraw));
+                    
+                    exHraw = removesSaccades(exHraw,nanBegin,nanEnd);
+                    exVraw = removesSaccades(exVraw,nanBegin,nanEnd);
+                    maeHraw = removesSaccades(maeHraw,nanBegin,nanEnd);
+                    maeVraw = removesSaccades(maeVraw,nanBegin,nanEnd);
+                    
+                    extendedH{f-d} = exHraw';
+                    extendedV{f-d} = exVraw';
+                    maestroH{f-d} = maeHraw;
+                    maestroV{f-d} = maeVraw;
+                    
+                    
+                catch
+                    warning(['Extended data for ' data.trials(f-d).maestro_name ' not found']);
+                    
                 end
-                
-                % values for extended data caliberation
-                
-                exHraw = extended.eyeh(extended.trial_begin_ms:(extended.trial_end_ms-1));
-                exVraw = extended.eyev(extended.trial_begin_ms:(extended.trial_end_ms-1));
-                maeHraw = data_raw.data(1,:)/CALIBRATE_POS;
-                maeVraw = data_raw.data(2,:)/CALIBRATE_POS;
-                
-                assert(length(exHraw)==length( data_raw.data(1,:)))
-                
-                nanBegin = max(data_raw.blinks(1:2:end)-blinkMargin,1);
-                nanEnd = min(data_raw.blinks(2:2:end)+blinkMargin,length(maeVraw));
-                               
-                exHraw = removesSaccades(exHraw,nanBegin,nanEnd);
-                exVraw = removesSaccades(exVraw,nanBegin,nanEnd);
-                maeHraw = removesSaccades(maeHraw,nanBegin,nanEnd);
-                maeVraw = removesSaccades(maeVraw,nanBegin,nanEnd);
-               
-                extendedH{f-d} = exHraw';
-                extendedV{f-d} = exVraw';
-                maestroH{f-d} = maeHraw;
-                maestroV{f-d} = maeVraw;
-                
-                
-            catch
-                warning(['Extended data for ' data.trials(f-d).maestro_name ' not found']);
-                
             end
         else
             d = d+1;
@@ -285,21 +292,22 @@ for ii = 1:length(lines)
     end
     
     % caliberate extended behavior
-    
-    [b_0,b_1,R_squared,nObservetions] = caliberateExtendedBehavior...
-        ([maestroH{:}],[maestroV{:}],[extendedH{:}],[extendedV{:}]);
-    
-    extended_behavior_fit = any(R_squared<0.99) | nObservetions < 30000;
-    if extended_behavior_fit
-        warning(['Problem with extended behavior caliberation in cell %s: '...
-            'R_squared = %d, %f.; nObservetions = %g'],num2str(data.info.cell_ID)...
-            ,R_squared(1),R_squared(2),nObservetions)
-          end
-    
-    data.extended_caliberation.nt = nObservetions;
-    data.extended_caliberation.b_0 = b_0;
-    data.extended_caliberation.b_1 = b_1;
-    data.extended_caliberation.R_squared = R_squared;
+    if extendedExist
+        [b_0,b_1,R_squared,nObservetions] = caliberateExtendedBehavior...
+            ([maestroH{:}],[maestroV{:}],[extendedH{:}],[extendedV{:}]);
+        
+        extended_behavior_fit = any(R_squared<0.99) | nObservetions < 30000;
+        if extended_behavior_fit
+            warning(['Problem with extended behavior caliberation in cell %s: '...
+                'R_squared = %d, %f.; nObservetions = %g'],num2str(data.info.cell_ID)...
+                ,R_squared(1),R_squared(2),nObservetions)
+        end
+        
+        data.extended_caliberation.nt = nObservetions;
+        data.extended_caliberation.b_0 = b_0;
+        data.extended_caliberation.b_1 = b_1;
+        data.extended_caliberation.R_squared = R_squared;
+    end
     
     % check screen rotation
     rotated = [data.trials.screen_rotation]~=0;
@@ -331,13 +339,16 @@ for ii = 1:length(lines)
     end
     
     dir_to = [sup_dir_to '\'  task_info(lines(ii)).task];
+    
+    name = strtrim(name); %remove redundent spaces
+    
     while exist([dir_to '\' name '.mat'], 'file')
         name = [name ' (1)'];
     end
     
     
     % sub folder in which to save trials
-    name = strtrim(name); %remove redundent spaces
+    
     try
         save([dir_to '\' name], 'data')
     catch
@@ -359,7 +370,9 @@ for ii = 1:length(lines)
     % Create mata-data information structure:
     task_info(lines(ii)).save_name = name;
     task_info(lines(ii)).num_trials = length(data.trials);
-    task_info(lines(ii)).extended_behavior_fit = extended_behavior_fit;
+    if extendedExist
+        task_info(lines(ii)).extended_behavior_fit = extended_behavior_fit;
+    end
     
     clear data extendedH extendedV maestroH maestroV
     
