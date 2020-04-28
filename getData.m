@@ -142,22 +142,17 @@ monkeyName =  containers.Map(cellfun(@(x) x(1:2), monkeyList, 'un', 0),monkeyLis
 
 fields = fieldnames(task_info);
 
-
 tasks = uniqueRowsCA({task_info(lines).task}');
 
 for t = 1:length(tasks)
     dir_to = [sup_dir_to  '\' tasks{t}];
-    
     mkdir(dir_to);
-    
 end
-
-
 
 for ii = 1:length(lines)
     
     % subfolder from which to take trials
-    d_from = [sup_dir_from '\' monkeyName(task_info(lines(ii)).session(1:2)) '\' task_info(lines(ii)).session];
+    dir_from = [sup_dir_from '\' monkeyName(task_info(lines(ii)).session(1:2)) '\' task_info(lines(ii)).session];
     
     
     if ~ (7==exist(dir_from,'dir'))
@@ -184,8 +179,12 @@ for ii = 1:length(lines)
             trial_num = f_b:f_e;
         end
         
-        num_e = task_info(lines(ii)).electrode; % electode number
-        num_t = task_info(lines(ii)).template;  % template number
+        if totalElectrodeNumber>1
+            num_e = task_info(lines(ii)).electrode; % electode number
+        else
+            num_e = 1;
+            num_t = task_info(lines(ii)).template;  % template number
+        end
         
     else
         f_b = task_info(lines(ii)).file_begin;
@@ -202,8 +201,6 @@ for ii = 1:length(lines)
     else
         trialType = 'pursuit';
     end
-    
-    
     
     % get trial info
     d = 0; % counting number of discarded trials
@@ -260,7 +257,6 @@ for ii = 1:length(lines)
         data.trials(f-d).screen_rotation = double(data_raw.key.iPosTheta/1000);
         
         if neuro_flag
-            
             data.trials(f-d).spike_times = data_raw.sortedSpikes{num_e+(num_t-1)*totalElectrodeNumber};
         end
         
