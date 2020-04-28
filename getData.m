@@ -20,9 +20,10 @@ function task_info = getData(task_info, sup_dir_from, sup_dir_to , lines, vararg
 %                           sorting.
 %            .fe_after_sort Numer of last trial in session (number), after
 %                           sorting.
-%            .electrode;    Electode number
+%            .electrode;    Electode number (except the case of recordings
+%                           with a single electrode - like Mati's data
+%                           brain stem)
 %            .template;  %  Template number
-
 
 %           sup_dir_from  Path to Maestro files
 %           sup_dir_to    Path to a folder in which to save trials
@@ -33,24 +34,49 @@ function task_info = getData(task_info, sup_dir_from, sup_dir_to , lines, vararg
 %                         saccades will be taken from the mark1 and mark2
 %                         fields in the Maestro file.
 
-% Outputs:  The function creates a directory for each monkey and within it
+% Optional Inputs:
+%          numElectrodes  Number of electrode used in recording, used to
+%                         find the location of spike time data in the
+%                         Maestro file. (Possible values 1, 5, 10. Defualt:
+%                         5)
+%          saccadesExtraction
+%                         1 - recalculate saccade times from the behavior.
+%                         0 - use the saccade times in the Maestro file
+%                         (Defualt: 1).
+%          extendedExist  1 - look for extended files (files that include
+%                         the time after trial end).
+%                         0 - do not look for them. (Defualt: 1).
+%
+
+%                         0 - use the saccade times in the Maestro file
+%                         (Defualt: 1).
+%          'includeBehavior'
+%                         1 - save individual trial behavior
+%                         0 - do not save it. (Defualt: 0).
+
+
+% Outputs:
+% The function creates a directory for each monkey and within it
 % a directory for  each task in sup_dir_to. In this folder it saves matlab
 % structure, one for each cell or session of the task. These structures are
 % named data and as a file in the name of the session date or the cell ID
 % and type. Each data structure contains a field called data.info that
 % contain information taken from the DB. It additionally contains the
 % trials in the field data.trials:
+%       .maestro_name       Name of Mastro file.
 %       .name               Trial name as written in Maestro
 %       .trial_length       Duration of trial (ms)
-%       .fail               Bollian: 1-if monkey failed trial, 0 - if
+%       .fail               Boolian: 1-if monkey failed trial, 0 - if
 %                           monkey succeeded.
-%       .choice             Bollian: 1-if monkey chose the first target
+%       .choice             Boolian: 1-if monkey chose the first target
 %                          (should be the adaptive choice), 0-else.
+%       .movement_onset     Time of target movement onset (ms)
+%       .movement_onset     Time of cue onset (ms)
+%       .blinkBegin         Beginning time points for blinks.
+%       .blinkEnd           Ending time points for blinks.
 %       .beginSaccade       Beginning time points for saccased and blinks.
 %       .endSaccade         Ending time points for saccased and blinks.
 %       .screen_rotation    Angle of screen rotation
-%       .maestro_name       Name of Mastro file.
-%       .movement_onset     Time of target movement onset (ms)
 %       .rwd_time_in_extended
 %                           Time of reward delivey (from the begining
 %                           of the extended trial, ms)
@@ -58,7 +84,7 @@ function task_info = getData(task_info, sup_dir_from, sup_dir_to , lines, vararg
 %       .spikes             Spike times (ms)
 %       .extended_spike_times
 %                           Spike times in extended (ms)
-%       For behavior only:
+%       For behavior data:
 %       .hPos, .vPos, .hVel, .vVel
 %                           behavior traces (caliberated)
 % The field extended_caliberation contains information that can be usd to
@@ -131,7 +157,7 @@ end
 for ii = 1:length(lines)
     
     % subfolder from which to take trials
-    dir_from = [sup_dir_from '\' monkeyName(task_info(lines(ii)).session(1:2)) '\' task_info(lines(ii)).session];
+    d_from = [sup_dir_from '\' monkeyName(task_info(lines(ii)).session(1:2)) '\' task_info(lines(ii)).session];
     
     
     if ~ (7==exist(dir_from,'dir'))
@@ -192,101 +218,103 @@ for ii = 1:length(lines)
             discard = 1;
             disp(['Missing trial: ' dir_from '\'  data.info.session data.info.trial_type sprintf('.%04d', trial_num(f))])
         end
-        if ~discard
-            flags = data_raw.key.flags;
-            data.trials(f-d).maestro_name = [data.info.session data.info.trial_type sprintf('.%04d', trial_num(f))];
-            data.trials(f-d).name = data_raw.trialname;
-            data.trials(f-d).trial_length = length(data_raw.data(1,:));
-            data.trials(f-d).fail =  logical(~bitget(flags, 3));
-            data.trials(f-d).choice =  logical(bitget(flags, 5));
+        
+        if discard
+            d = d+1;
+            continue
+        end
+        
+        flags = data_raw.key.flags;
+        data.trials(f-d).maestro_name = [data.info.session data.info.trial_type sprintf('.%04d', trial_num(f))];
+        data.trials(f-d).name = data_raw.trialname;
+        data.trials(f-d).trial_length = length(data_raw.data(1,:));
+        data.trials(f-d).fail =  logical(~bitget(flags, 3));
+        data.trials(f-d).choice =  logical(bitget(flags, 5));
+        % get behavior
+        %  1: horizonal position
+        %  2: vertical position
+        %  3: horizonal velocity
+        %  4: vertical velocity
+        
+        [targetOnset, targetOffset] = ...
+            targetMovementOnOffSet(data_raw.targets, trialType);
+        data.trials(f-d).movement_onset = targetOnset;
+        data.trials(f-d).cue_onset = data_raw.targets.on{1}(1);
+        
+        data.trials(f-d).blinkBegin = max(1,data_raw.blinks(1:2:end));
+        data.trials(f-d).blinkEnd = min(data_raw.blinks(2:2:end),data.trials(f-d).trial_length);
+        
+        
+        if saccadesExtraction
+            hVel = data_raw.data(3,:)/CALIBRATE_VEL;
+            vVel = data_raw.data(4,:)/CALIBRATE_VEL;
+            [beginSaccade, endSaccade] = getSaccades(hVel,vVel,...
+                data_raw.blinks, targetOnset, targetOffset);
+            data.trials(f-d).beginSaccade = beginSaccade;
+            data.trials(f-d).endSaccade = endSaccade;
+        else
+            data.trials(f-d).beginSaccade = data_raw.mark1;
+            data.trials(f-d).endSaccade = data_raw.mark2;
+        end
+        
+        data.trials(f-d).screen_rotation = double(data_raw.key.iPosTheta/1000);
+        
+        if neuro_flag
+            
+            data.trials(f-d).spike_times = data_raw.sortedSpikes{num_e+(num_t-1)*totalElectrodeNumber};
+        end
+        
+        if includeBehavior | ~neuro_flag
             % get behavior
             %  1: horizonal position
             %  2: vertical position
             %  3: horizonal velocity
             %  4: vertical velocity
-            
-            [targetOnset, targetOffset] = ...
-                targetMovementOnOffSet(data_raw.targets, trialType);
-            data.trials(f-d).movement_onset = targetOnset;
-            data.trials(f-d).cue_onset = data_raw.targets.on{1}(1);
-            
-            data.trials(f-d).blinkBegin = max(1,data_raw.blinks(1:2:end));
-            data.trials(f-d).blinkEnd = min(data_raw.blinks(2:2:end),data.trials(f-d).trial_length);
-            
-            
-            if saccadesExtraction
-                hVel = data_raw.data(3,:)/CALIBRATE_VEL;
-                vVel = data_raw.data(4,:)/CALIBRATE_VEL;
-                [beginSaccade, endSaccade] = getSaccades(hVel,vVel,...
-                    data_raw.blinks, targetOnset, targetOffset);
-                data.trials(f-d).beginSaccade = beginSaccade;
-                data.trials(f-d).endSaccade = endSaccade;
-            else
-                data.trials(f-d).beginSaccade = data_raw.mark1;
-                data.trials(f-d).endSaccade = data_raw.mark2;
-            end
-            
-            data.trials(f-d).screen_rotation = double(data_raw.key.iPosTheta/1000);
-            
-            if neuro_flag
+            data.trials(f-d).hPos = data_raw.data(1,:)/CALIBRATE_POS;
+            data.trials(f-d).vPos = data_raw.data(2,:)/CALIBRATE_POS;
+            data.trials(f-d).hVel = data_raw.data(3,:)/CALIBRATE_VEL;
+            data.trials(f-d).vVel = data_raw.data(4,:)/CALIBRATE_VEL;
+        end
+        
+        if extendedExist
+            try
+                extended = importdata([sup_dir_from  '\'  monkeyName(task_info(lines(ii)).session(1:2)) '\' data.info.session '\extend_trial\' ...
+                    data.trials(f-d).maestro_name '.mat']);
                 
-                data.trials(f-d).spike_times = data_raw.sortedSpikes{num_e+(num_t-1)*totalElectrodeNumber};
-            end
-                
-            if includeBehavior | ~neuro_flag 
-                % get behavior
-                %  1: horizonal position
-                %  2: vertical position
-                %  3: horizonal velocity
-                %  4: vertical velocity
-                data.trials(f-d).hPos = data_raw.data(1,:)/CALIBRATE_POS;
-                data.trials(f-d).vPos = data_raw.data(2,:)/CALIBRATE_POS;
-                data.trials(f-d).hVel = data_raw.data(3,:)/CALIBRATE_VEL;
-                data.trials(f-d).vVel = data_raw.data(4,:)/CALIBRATE_VEL;
-            end
-            
-            if extendedExist
-                try
-                    extended = importdata([sup_dir_from  '\'  monkeyName(task_info(lines(ii)).session(1:2)) '\' data.info.session '\extend_trial\' ...
-                        data.trials(f-d).maestro_name '.mat']);
-                    
-                    data.trials(f-d).rwd_time_in_extended = extended.trial_end_ms;
-                    data.trials(f-d).previous_completed = any(extended.rwd(1:extended.trial_begin_ms) > rwdThreshold);
-                    if neuro_flag
-                        data.trials(f-d).extended_spike_times = ...
-                            extended.sortedSpikes{data.info.electrode+(data.info.template-1)*totalElectrodeNumber};
-                    end
-                    
-                    % values for extended data caliberation
-                    
-                    exHraw = extended.eyeh(extended.trial_begin_ms:(extended.trial_end_ms-1));
-                    exVraw = extended.eyev(extended.trial_begin_ms:(extended.trial_end_ms-1));
-                    maeHraw = data_raw.data(1,:)/CALIBRATE_POS;
-                    maeVraw = data_raw.data(2,:)/CALIBRATE_POS;
-                    
-                    assert(length(exHraw)==length( data_raw.data(1,:)))
-                    
-                    nanBegin = max(data_raw.blinks(1:2:end)-blinkMargin,1);
-                    nanEnd = min(data_raw.blinks(2:2:end)+blinkMargin,length(maeVraw));
-                    
-                    exHraw = removesSaccades(exHraw,nanBegin,nanEnd);
-                    exVraw = removesSaccades(exVraw,nanBegin,nanEnd);
-                    maeHraw = removesSaccades(maeHraw,nanBegin,nanEnd);
-                    maeVraw = removesSaccades(maeVraw,nanBegin,nanEnd);
-                    
-                    extendedH{f-d} = exHraw';
-                    extendedV{f-d} = exVraw';
-                    maestroH{f-d} = maeHraw;
-                    maestroV{f-d} = maeVraw;
-                    
-                    
-                catch
-                    warning(['Extended data for ' data.trials(f-d).maestro_name ' not found']);
-                    
+                data.trials(f-d).rwd_time_in_extended = extended.trial_end_ms;
+                data.trials(f-d).previous_completed = any(extended.rwd(1:extended.trial_begin_ms) > rwdThreshold);
+                if neuro_flag
+                    data.trials(f-d).extended_spike_times = ...
+                        extended.sortedSpikes{data.info.electrode+(data.info.template-1)*totalElectrodeNumber};
                 end
+                
+                % values for extended data caliberation
+                
+                exHraw = extended.eyeh(extended.trial_begin_ms:(extended.trial_end_ms-1));
+                exVraw = extended.eyev(extended.trial_begin_ms:(extended.trial_end_ms-1));
+                maeHraw = data_raw.data(1,:)/CALIBRATE_POS;
+                maeVraw = data_raw.data(2,:)/CALIBRATE_POS;
+                
+                assert(length(exHraw)==length( data_raw.data(1,:)))
+                
+                nanBegin = max(data_raw.blinks(1:2:end)-blinkMargin,1);
+                nanEnd = min(data_raw.blinks(2:2:end)+blinkMargin,length(maeVraw));
+                
+                exHraw = removesSaccades(exHraw,nanBegin,nanEnd);
+                exVraw = removesSaccades(exVraw,nanBegin,nanEnd);
+                maeHraw = removesSaccades(maeHraw,nanBegin,nanEnd);
+                maeVraw = removesSaccades(maeVraw,nanBegin,nanEnd);
+                
+                extendedH{f-d} = exHraw';
+                extendedV{f-d} = exVraw';
+                maestroH{f-d} = maeHraw;
+                maestroV{f-d} = maeVraw;
+                
+                
+            catch
+                warning(['Extended data for ' data.trials(f-d).maestro_name ' not found']);
+                
             end
-        else
-            d = d+1;
         end
         
     end
