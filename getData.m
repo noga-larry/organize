@@ -181,6 +181,7 @@ for ii = 1:length(lines)
         
         if totalElectrodeNumber>1
             num_e = task_info(lines(ii)).electrode; % electode number
+            num_t = task_info(lines(ii)).template;  % template number
         else
             num_e = 1;
             num_t = task_info(lines(ii)).template;  % template number
