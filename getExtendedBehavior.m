@@ -11,7 +11,7 @@ data = getBehavior (data,maestroPath);
 
 
 for t=1:length(data.trials)
-    extended = importdata (  [maestroPath '\'  data.info.session ...
+    extended = importdata (  [maestroPath '\' data.info.monkey '\' data.info.session ...
         '\extend_trial\' data.trials(t).maestro_name '.mat']);
     data.trials(t).extended_hPos = b_0(1)+b_1(1)*extended.eyeh';
     data.trials(t).extended_vPos = b_0(2)+b_1(2)*extended.eyev';

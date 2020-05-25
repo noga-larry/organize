@@ -7,7 +7,7 @@ CALIBRATE_POS = 40;
 
 
 for t=1:length(data.trials)
-data_raw = readcxdata (  [maestroPath data.info.monkey '\'  data.info.session ...
+data_raw = readcxdata (  [maestroPath '\' data.info.monkey '\'  data.info.session ...
    '\' data.trials(t).maestro_name]);
 
 % get behavior
