@@ -9,7 +9,6 @@ b_1 = data.extended_caliberation.b_1;
 
 data = getBehavior (data,maestroPath);
 
-
 for t=1:length(data.trials)
     extended = importdata (  [maestroPath '\' data.info.monkey '\' data.info.session ...
         '\extend_trial\' data.trials(t).maestro_name '.mat']);
