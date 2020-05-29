@@ -30,13 +30,39 @@ end
 
 if isfield(req_params,'session')
     bool_session = strcmp (req_params.session, {task_info.session});
-
 else
     bool_session = ones(1, length(task_info));
 end
 
+if isfield(req_params,'monkey')
+    bool_monkey = ~cellfun(@isempty,regexp({task_info.session},req_params.monkey(1:2)));
+else
+    bool_monkey = ones(1, length(task_info));
+end
 
-lines = find(bool_task & bool_type & bool_grade & bool_ID .*bool_nt.*bool_session);
+lines = find(bool_task & bool_type & bool_grade &...
+    bool_monkey & bool_ID .*bool_nt.*bool_session);
+
+
+% remove repeated cells
+if ~(isfield(req_params,'remove_repeats')) | req_params.remove_repeats
+    linesCellIDs = [task_info(lines).cell_ID];
+    [~,uniqueLines] = unique(linesCellIDs);
+    uniqueLines = lines(uniqueLines);
+    repeatedLines = setdiff(lines,uniqueLines);
+    
+    removeLines = [];
+    for ii=1:length(repeatedLines)
+        thisLine = repeatedLines(ii);
+        ID = task_info(thisLine).cell_ID;
+        sameCellLines = lines(find(linesCellIDs==ID));
+        [~,indMax] = max([task_info(sameCellLines).num_trials]);
+        removeLines = [removeLines, setdiff(sameCellLines,sameCellLines(indMax))];
+        disp(['Removed ' num2str(length(sameCellLines)-1) ' repeats of cell ' num2str(ID)])
+    end
+    lines =  setdiff(lines,removeLines);
+end
+
 
 if isfield(req_params,'remove_question_marks') & req_params.remove_question_marks
    ind_qm = find(~cellfun(@isempty,regexp({task_info(lines).cell_type},'?')));
