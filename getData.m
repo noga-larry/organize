@@ -137,7 +137,8 @@ monkeyList =...
     'reggie',
     'pluto',
     'imonkey',
-    'xtra'};
+    'xtra',
+    'golda'};
 monkeyName =  containers.Map(cellfun(@(x) x(1:2), monkeyList, 'un', 0),monkeyList);
 
 fields = fieldnames(task_info);
@@ -313,8 +314,9 @@ for ii = 1:length(lines)
                 
             end
         end
-        
     end
+    
+    
     
     % caliberate extended behavior
     if extendedExist
@@ -378,7 +380,7 @@ for ii = 1:length(lines)
         save([dir_to '\' name], 'data')
     catch
         beep
-        if ~isempty(regexp(name,'?'))
+        if ~isempty(regexp(name,'?', 'once'))
             name (regexp(name,'?')) = '#';
             save([dir_to '\' name], 'data')
         else
