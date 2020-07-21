@@ -1,6 +1,6 @@
 function task_info = listSessionsFromTrials(supDirectory,prefix)
  
-
+counter = 1;
 for s = 1:length(prefix)
     dirFrom = [supDirectory '\' prefix{s} '\'];
     files = dir(dirFrom); files = files (3:end);
@@ -18,11 +18,14 @@ for s = 1:length(prefix)
             elseif (ii==numTrials)
                 fe = ii;
             end
-            task_info.session = prefix{s};
-            task_info.task = taskBefore;
-            task_info.file_begin = fb;
-            task_info.file_end = fe;
-            task_info.trial_type = 'a';
+            task_info(counter).session = prefix{s};
+            task_info(counter).task = taskBefore;
+            task_info(counter).file_begin = fb;
+            task_info(counter).file_end = fe;
+            task_info(counter).trial_type = 'a'; 
+            counter = counter+1;
+            taskBefore = taskCurrent;
+            fb = fe+1;
         end
     end
 end
