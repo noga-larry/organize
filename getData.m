@@ -345,7 +345,11 @@ for ii = 1:length(lines)
             display (['screen is rotated:' num2str(data.info.session)])
         end
         if max([data.trials.screen_rotation])~=min([data.trials.screen_rotation])
-            display (['rotation change mid session:' num2str(data.info.session)])
+            if neuro_flag
+                display (['rotation change mid session:' num2str(data.info.cell_ID)])
+            else
+                display (['rotation change mid session:' num2str(data.info.session)])
+            end
         end
         
     end
