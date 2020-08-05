@@ -344,15 +344,19 @@ for ii = 1:length(lines)
         else
             display (['screen is rotated:' num2str(data.info.session)])
         end
-        if max([data.trials.screen_rotation])~=min([data.trials.screen_rotation])
-            if neuro_flag
-                display (['rotation change mid session:' num2str(data.info.cell_ID)])
-            else
-                display (['rotation change mid session:' num2str(data.info.session)])
-            end
-        end
-        
     end
+    
+    if max([data.trials.screen_rotation])~=min([data.trials.screen_rotation])
+        if neuro_flag
+            display (['rotation change mid session:' num2str(data.info.cell_ID)])
+        else
+            display (['rotation change mid session:' num2str(data.info.session)])
+        end
+    else
+        task_info(lines(ii)).screen_rotation = data.trials(1).screen_rotation;
+    end
+    
+
     
     % check that there are spikes
     
