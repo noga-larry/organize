@@ -19,7 +19,7 @@ expression = '(?<=d)[0-9]*';
 match_d_tmp = reshape([match_d_tmp{:}],length(match_d_tmp{1}),length(match_d_tmp));
 match_d_tmp =  cellfun(@str2double,match_d_tmp);
 match_d = nan(size(match_d_tmp,1),length(data.trials));
-match_d(:,ind) = match_d_tmp
+match_d(:,ind) = match_d_tmp;
 directions = unique(match_d);
 directions(isnan(directions)) = [];
 directions = sort(directions);
