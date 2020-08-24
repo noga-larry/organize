@@ -226,10 +226,15 @@ for ii = 1:length(lines)
             d = d+1;
             continue
         end
-        
+          
         flags = data_raw.key.flags;
         data.trials(f-d).maestro_name = [data.info.session data.info.trial_type sprintf('.%04d', trial_num(f))];
         data.trials(f-d).name = data_raw.trialname;
+        if strcmp(dataSet,'Vermis') & strcmp(data_raw.trialname,'45v20P75R')
+            data.trials(f-d).name = 'd45v20P75R';
+        elseif strcmp(dataSet,'Vermis') & strcmp(data_raw.trialname,'d225v20P725NR')
+            data.trials(f-d).name = 'd225v20P75NR';
+        end
         data.trials(f-d).trial_length = length(data_raw.data(1,:));
         data.trials(f-d).fail =  logical(~bitget(flags, 3));
         data.trials(f-d).choice =  logical(bitget(flags, 5));
