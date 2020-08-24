@@ -47,6 +47,7 @@ lines = find(bool_task & bool_type & bool_grade &...
 % remove repeated cells
 if ~(isfield(req_params,'remove_repeats')) | req_params.remove_repeats
     linesCellIDs = [task_info(lines).cell_ID];
+    linesCellTypes = {task_info(lines).cell_type};
     [~,uniqueLines] = unique(linesCellIDs);
     uniqueLines = lines(uniqueLines);
     repeatedLines = setdiff(lines,uniqueLines);
@@ -55,11 +56,15 @@ if ~(isfield(req_params,'remove_repeats')) | req_params.remove_repeats
     for ii=1:length(repeatedLines)
         thisLine = repeatedLines(ii);
         ID = task_info(thisLine).cell_ID;
-        sameCellLines = lines(find(linesCellIDs==ID));
+        type = task_info(thisLine).cell_type;
+        sameCellLines = lines(find(linesCellIDs==ID & strcmp(linesCellTypes,type)));
         [~,indMax] = max([task_info(sameCellLines).num_trials]);
         removeLines = [removeLines, setdiff(sameCellLines,sameCellLines(indMax))];
-        disp(['Removed ' num2str(length(sameCellLines)-1) ' repeats of cell ' num2str(ID)])
+        if (length(sameCellLines)-1)>0
+            disp(['Removed ' num2str(length(sameCellLines)-1) ' repeats of cell ' num2str(ID)])
+        end
     end
+    
     lines =  setdiff(lines,removeLines);
 end
 
