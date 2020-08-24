@@ -1,4 +1,4 @@
-function task_info = getData(task_info, sup_dir_from, sup_dir_to , lines, varargin)
+function task_info = getData(dataSet, lines, varargin)
 % This function creates a data strucutre for each cell\session and saves
 % it. It takes different Maestro files and gathers them according to a
 % session DB. These structures are later used in almost all my
@@ -124,6 +124,8 @@ CALIBRATE_POS = 40;
 blinkMargin = 70; %ms
 rwdThreshold = 1000;
 
+[task_info,sup_dir_to, sup_dir_from] = loadDBAndSpecifyDataPaths(dataSet);
+
 % check if there is also neural data, or behavior only
 
 neuro_flag = isfield(task_info, 'cell_ID');
@@ -210,6 +212,8 @@ for ii = 1:length(lines)
         
         data_raw = readcxdata(  [dir_from '\'  data.info.session data.info.trial_type sprintf('.%04d', trial_num(f))]);
         
+%         verifyTrialTypeInDB(dataSet,data_raw.trialname,data.info.task)
+
         discard = 0;
         if data_raw.discard ==1 | any(data_raw.mark1==-1)| ~isempty(data_raw.marks);
             discard = 1;
@@ -415,6 +419,8 @@ for ii = 1:length(lines)
         disp([num2str(ii) '\' num2str(length(lines))])
     end
     
+    save([sup_dir_to '\task_info'],'task_info')
+
 end
 disp('Finished!')
 
