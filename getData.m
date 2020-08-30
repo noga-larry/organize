@@ -7,7 +7,14 @@ function task_info = getData(dataSet, lines, varargin)
 % However, additional feild can be added to the data strucutres by
 % additional functions.
 
-% Inputs:   task_info       A matlab data structure based on the session
+% Inputs:
+% dataSet    (string) The function will use this to upload the paths to the
+%            folder in which to save the data and the task_info file. This
+%            is done using "loadDBAndSpecifyDataPaths". task_info ia a
+%            structure with the followinf fields:   
+
+
+% task_info       A matlab data structure based on the session
 %                           DB. Each row represents a session. Need to
 %                           contain the fields:
 %            .task          Name of task in session
@@ -25,16 +32,12 @@ function task_info = getData(dataSet, lines, varargin)
 %                           brain stem)
 %            .template;  %  Template number
 
-%           sup_dir_from  Path to Maestro files
-%           sup_dir_to    Path to a folder in which to save trials
-%           lines         Line numbers in task_info to comstruct data
-%                         structures for.
-%           saccades_extraction
-%                         Whether or not to look for saccades. if false,
-%                         saccades will be taken from the mark1 and mark2
-%                         fields in the Maestro file.
 
-% Optional Inputs:
+%           lines         Line numbers in task_info to construct data
+%                         structures for.
+
+% Optional Inputs: 
+
 %          numElectrodes  Number of electrode used in recording, used to
 %                         find the location of spike time data in the
 %                         Maestro file. (Possible values 1, 5, 10. Defualt:
@@ -50,7 +53,7 @@ function task_info = getData(dataSet, lines, varargin)
 
 %                         0 - use the saccade times in the Maestro file
 %                         (Defualt: 1).
-%          'includeBehavior'
+%          includeBehavior
 %                         1 - save individual trial behavior
 %                         0 - do not save it. (Defualt: 0).
 
@@ -71,7 +74,7 @@ function task_info = getData(dataSet, lines, varargin)
 %       .choice             Boolian: 1-if monkey chose the first target
 %                          (should be the adaptive choice), 0-else.
 %       .movement_onset     Time of target movement onset (ms)
-%       .movement_onset     Time of cue onset (ms)
+%       .cue_onset     Time of cue onset (ms)
 %       .blinkBegin         Beginning time points for blinks.
 %       .blinkEnd           Ending time points for blinks.
 %       .beginSaccade       Beginning time points for saccased and blinks.
@@ -121,8 +124,8 @@ includeBehavior = p.Results.includeBehavior;
 CALIBRATE_VEL = 10.8826;
 CALIBRATE_POS = 40;
 
-blinkMargin = 70; %ms
-rwdThreshold = 1000;
+BLINK_MARGIN = 70; %ms
+REWARD_THRESHOLD = 1000;
 
 [task_info,sup_dir_to, sup_dir_from] = loadDBAndSpecifyDataPaths(dataSet);
 
@@ -289,7 +292,7 @@ for ii = 1:length(lines)
                     data.trials(f-d).maestro_name '.mat']);
                 
                 data.trials(f-d).rwd_time_in_extended = extended.trial_end_ms;
-                data.trials(f-d).previous_completed = any(extended.rwd(1:extended.trial_begin_ms) > rwdThreshold);
+                data.trials(f-d).previous_completed = any(extended.rwd(1:extended.trial_begin_ms) > REWARD_THRESHOLD);
                 if neuro_flag
                     data.trials(f-d).extended_spike_times = ...
                         extended.sortedSpikes{data.info.electrode+(data.info.template-1)*totalElectrodeNumber};
@@ -304,8 +307,8 @@ for ii = 1:length(lines)
                 
                 assert(length(exHraw)==length( data_raw.data(1,:)))
                 
-                nanBegin = max(data_raw.blinks(1:2:end)-blinkMargin,1);
-                nanEnd = min(data_raw.blinks(2:2:end)+blinkMargin,length(maeVraw));
+                nanBegin = max(data_raw.blinks(1:2:end)-BLINK_MARGIN,1);
+                nanEnd = min(data_raw.blinks(2:2:end)+BLINK_MARGIN,length(maeVraw));
                 
                 exHraw = removesSaccades(exHraw,nanBegin,nanEnd);
                 exVraw = removesSaccades(exVraw,nanBegin,nanEnd);
