@@ -5,7 +5,10 @@ for s = 1:length(prefix)
     dirFrom = [supDirectory '\' prefix{s} '\'];
     files = dir(dirFrom); files = files (3:end);
     numTrials = length(files);
-  
+    
+    if numTrials==0
+        continue
+    end
     data_raw = readcxdata(  [dirFrom '\'  prefix{s} 'a' sprintf('.%04d',1)]);
     taskBefore = getTrialType(data_raw);
     fb = 1;
