@@ -209,14 +209,13 @@ for ii = 1:length(lines)
         trialType = 'pursuit';
     end
     
+    allTrialAreCorrectInDB = true;
     % get trial info
     d = 0; % counting number of discarded trials
     for f = 1:length(trial_num)
         
         data_raw = readcxdata(  [dir_from '\'  data.info.session data.info.trial_type sprintf('.%04d', trial_num(f))]);
         
-%         verifyTrialTypeInDB(dataSet,data_raw.trialname,data.info.task)
-
         discard = 0;
         if data_raw.discard ==1 | any(data_raw.mark1==-1)| ~isempty(data_raw.marks);
             discard = 1;
@@ -229,15 +228,25 @@ for ii = 1:length(lines)
             d = d+1;
             continue
         end
-          
+         
+        thisTrialCorrectTaskInDB = verifyTrialTypeInDB(dataSet,data_raw.trialname,data.info.task);
+         
         flags = data_raw.key.flags;
         data.trials(f-d).maestro_name = [data.info.session data.info.trial_type sprintf('.%04d', trial_num(f))];
         data.trials(f-d).name = data_raw.trialname;
+        
+        % Fix errors in vermis data base
         if strcmp(dataSet,'Vermis') & strcmp(data_raw.trialname,'45v20P75R')
             data.trials(f-d).name = 'd45v20P75R';
         elseif strcmp(dataSet,'Vermis') & strcmp(data_raw.trialname,'d225v20P725NR')
             data.trials(f-d).name = 'd225v20P75NR';
         end
+        
+        if ~thisTrialCorrectTaskInDB
+            allTrialAreCorrectInDB = false;
+            continue
+        end
+        
         data.trials(f-d).trial_length = length(data_raw.data(1,:));
         data.trials(f-d).fail =  logical(~bitget(flags, 3));
         data.trials(f-d).choice =  logical(bitget(flags, 5));
@@ -426,8 +435,14 @@ for ii = 1:length(lines)
     if mod(ii,50)==0
         disp([num2str(ii) '\' num2str(length(lines))])
     end
-    
+
     save([sup_dir_to '\task_info'],'task_info')
+    
+    if ~allTrialAreCorrectInDB
+        disp(['Error in DB: ' name])
+        pause
+    end
+    
 
 end
 disp('Finished!')
