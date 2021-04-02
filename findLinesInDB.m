@@ -1,6 +1,11 @@
 function lines = findLinesInDB (task_info, req_params)
 
-bool_task = ~cellfun(@isempty,regexp({task_info.task},req_params.task));
+
+if isfield(req_params,'task')
+    bool_task = ~cellfun(@isempty,regexp({task_info.task},req_params.task));
+else
+    bool_task = ones(1, length(task_info));
+end
 
 if isfield(req_params,'ID')
     C = intersect([task_info.cell_ID],req_params.ID);
