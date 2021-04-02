@@ -166,11 +166,17 @@ for ii = 1:length(lines)
         continue
     end
     
+    
     % take all info from excel sheet and save it
     for f=1:numel(fields)
         data.info.(fields{f}) = task_info(lines(ii)).(fields{f});
     end
     data.info.monkey = monkeyName(task_info(lines(ii)).session(1:2));
+    
+    if neuro_flag & isnan(data.info.plex_sorted_file)
+        disp (['Cell was not sorted: ' num2str(data.info.cell_ID)])
+        continue
+    end
     
     
     % run over trials and save them
