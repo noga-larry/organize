@@ -4,8 +4,9 @@ counter = 1;
 for s = 1:length(prefix)
     dirFrom = [supDirectory '\' prefix{s} '\'];
     files = dir(dirFrom); files = files (3:end);
-    numTrials = length(files);
     
+    numTrials = cellfun(@str2double,regexp({files.name},'(?<=a.)[0-9]*','match'),'UniformOutput',false);
+    numTrials = max([numTrials{:}]);
     if numTrials==0
         continue
     end

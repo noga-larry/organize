@@ -14,14 +14,26 @@ for ii=1:length(sessions)
         listOfCells = [];
         fb1 = task_info(lines(c)).fb_after_sort;
         fe1 = task_info(lines(c)).fe_after_sort;
-        trial1 = fb1:fe1;
+            if ~isnumeric(fb1)
+                fb1 = str2num(fb1);
+                fe1 = str2num(fe1);
+                trial_num1 = [fb1(1):fe1(1) fb1(2):fe1(2)];
+            else
+                trial_num1 = fb1:fe1;
+            end
         
         for d = 1:length(lines)
             fb2 = task_info(lines(d)).fb_after_sort;
             fe2 = task_info(lines(d)).fe_after_sort;
-            trials2 = fb2:fe2;
+            if ~isnumeric(fb2)
+                fb2 = str2num(fb2);
+                fe2 = str2num(fe2);
+                trial_num2 = [fb2(1):fe2(1) fb2(2):fe2(2)];
+            else
+                trial_num2 = fb2:fe2;
+            end
             
-            if length(intersect(trial1,trials2)) >= req_params.num_trials...
+            if length(intersect(trial_num1,trial_num2)) >= req_params.num_trials...
                     & ~(task_info(lines(c)).cell_ID == task_info(lines(d)).cell_ID)...
                     & ~(task_info(lines(c)).electrode == task_info(lines(d)).electrode)
 
