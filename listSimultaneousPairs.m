@@ -8,6 +8,7 @@ sessions = uniqueRowsCA({task_info.session}');
 
 for ii=1:length(sessions)
     req_params.session = sessions{ii};
+    % lines in this session
     lines = findLinesInDB (task_info, req_params);
     
     for c = 1:length(lines)
