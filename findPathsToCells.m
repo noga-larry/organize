@@ -1,7 +1,5 @@
 function paths = findPathsToCells (supPath,task_info,lines)
 
-supPath = [supPath '\' task_info(lines(1)).task '\'];
+tasks = {task_info(lines).task};
 names =  {task_info(lines).save_name};
-paths = cellfun(@(c)[supPath '\' c '.mat'],names,'uni',false);
-
-
+paths = cellfun(@(c,t)[supPath '\' t '\' c '.mat'],names,tasks,'uni',false);
