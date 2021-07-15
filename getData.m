@@ -177,9 +177,7 @@ for ii = 1:length(lines)
         data.info.(fields{f}) = task_info(lines(ii)).(fields{f});
     end
     data.info.monkey = monkeyName(task_info(lines(ii)).session(1:2));
-    
-
-    
+      
     
     % run over trials and save them
     if neuro_flag
@@ -345,6 +343,9 @@ for ii = 1:length(lines)
         end
     end
     
+    if ~allTrialAreCorrectInDB
+        disp(['Error in DB: ' name])
+    end
     
     
     % caliberate extended behavior
@@ -386,7 +387,6 @@ for ii = 1:length(lines)
     end
     
 
-    
     % check that there are spikes
     
     if neuro_flag && isempty([data.trials.spike_times])
@@ -416,7 +416,6 @@ for ii = 1:length(lines)
     try
         save([dir_to '\' name], 'data')
     catch
-        beep
         if ~isempty(regexp(name,'?', 'once'))
             name (regexp(name,'?')) = '#';
             save([dir_to '\' name], 'data')
@@ -438,20 +437,16 @@ for ii = 1:length(lines)
         task_info(lines(ii)).extended_behavior_fit = extended_behavior_fit;
     end
     
+
+    
     clear data extendedH extendedV maestroH maestroV
     
     if mod(ii,50)==0
         disp([num2str(ii) '\' num2str(length(lines))])
     end
-
+    
     save([sup_dir_to '\task_info'],'task_info')
     
-    if ~allTrialAreCorrectInDB
-        disp(['Error in DB: ' name])
-        pause
-    end
-    
-
 end
 disp('Finished!')
 
