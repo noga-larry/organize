@@ -2,7 +2,7 @@ function [boolVerifieid] = verifyTrialTypeInDB(dataSet,MaestroTrialName,DBTask)
 
 switch dataSet
     
-    case 'Vermis'
+    case {'Vermis','Golda'}
         if ~isempty(regexp(MaestroTrialName,'vs'))
            MaestroTask = 'choice';
         elseif isempty(regexp(MaestroTrialName,'v'))
@@ -17,6 +17,8 @@ switch dataSet
             end
         end
          
+       case 'Golda single days'
+           MaestroTask = DBTask;
 end
 
 boolVerifieid = strcmp(MaestroTask,DBTask);
