@@ -17,6 +17,13 @@ end
 
 expression = '(?<=P)[0-9]*|(?<=p)[0-9]*'; 
 [match_p_tmp,~] = regexp({data.trials(ind).name},expression,'match','split','forceCellOutput');
+
+if any(cellfun(@isempty,match_p_tmp))
+    disp('Contain trial with no probability')
+    probabilities = {};
+    match_p = nan(length(ind),1);    
+    return
+end
 match_p_tmp = reshape([match_p_tmp{:}],length(match_p_tmp{1}),length(match_p_tmp));
 match_p_tmp =  cellfun(@str2double,match_p_tmp);
 match_p = nan(size(match_p_tmp,1),length(data.trials));
