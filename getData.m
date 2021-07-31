@@ -406,29 +406,30 @@ for ii = 1:length(lines)
     
     name = strtrim(name); %remove redundent spaces
     
+    if ~isempty(regexp(name,'?', 'once'))
+        name (regexp(name,'?')) = '#';
+    end
+    
     while exist([dir_to '\' name '.mat'], 'file')
         name = [name ' (1)'];
     end
     
+
     
     % sub folder in which to save trials
     
     try
         save([dir_to '\' name], 'data')
     catch
-        if ~isempty(regexp(name,'?', 'once'))
-            name (regexp(name,'?')) = '#';
+        disp(['File name is invalid: ' num2str(task_info(lines(ii)).cell_ID) '_' num2str(task_info(lines(ii)).cell_type)])
+        name = input ('Enter new file name or X to discard cell ');
+        if ~ (name == 'X')
             save([dir_to '\' name], 'data')
         else
-            disp(['File name is invalid: ' num2str(task_info(lines(ii)).cell_ID) '_' num2str(task_info(lines(ii)).cell_type)])
-            name = input ('Enter new file name or X to discard cell ');
-            if ~ (name == 'X')
-                save([dir_to '\' name], 'data')
-            else
-                disp('Discarded!')
-            end
+            disp('Discarded!')
         end
-    end
+    end  
+    
     
     % Create mata-data information structure:
     task_info(lines(ii)).save_name = name;
