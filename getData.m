@@ -286,7 +286,8 @@ for ii = 1:length(lines)
         data.trials(f-d).screen_rotation = double(data_raw.key.iPosTheta/1000);
         
         if neuro_flag
-            data.trials(f-d).spike_times = data_raw.sortedSpikes{num_e+(num_t-1)*totalElectrodeNumber};
+            data.trials(f-d).spike_times = ...
+                data_raw.sortedSpikes{num_e+(num_t-1)*totalElectrodeNumber};
         end
         
         if includeBehavior | ~neuro_flag

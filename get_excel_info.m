@@ -16,6 +16,6 @@ for ii=1:size(raw,2)
 end
 
 
-save([dir_to],'task_info')
+save([dir_to '\task_info'],'task_info')
 end
 
