@@ -1,5 +1,6 @@
 function [data,flagCross] = getLicking (data,maestroPath);
-threshold = 5000;
+
+threshold = 1000;
 flagCross = false;
 for t=1:length(data.trials)
     extended = importdata (  [maestroPath  data.info.monkey '\'  data.info.session ...
