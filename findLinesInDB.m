@@ -14,6 +14,10 @@ else
     bool_ID = ones(1, length(task_info));
 end
 
+if iscell(req_params.cell_type)
+    req_params.cell_type = cellArrayToOrRegexp(req_params.cell_type);
+end
+
 if isfield(req_params,'cell_type')
     bool_type = ~cellfun(@isempty,regexp({task_info.cell_type},req_params.cell_type));
 else
