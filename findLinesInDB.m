@@ -14,7 +14,7 @@ else
     bool_ID = ones(1, length(task_info));
 end
 
-if iscell(req_params.cell_type)
+if isfield(req_params,'cell_type') & iscell(req_params.cell_type)
     req_params.cell_type = cellArrayToOrRegexp(req_params.cell_type);
 end
 
