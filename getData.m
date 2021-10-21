@@ -166,7 +166,8 @@ for ii = 1:length(lines)
         continue
     end
     
-    if neuro_flag & isnan(task_info(lines(ii)).plex_sorted_file)
+    % If needed, verify that the cell was sorted
+    if neuro_flag && isfield(task_info,'plex_sorted_file') && isnan(plex_sorted_file(lines(ii)).plex_sorted_file)
         disp (['Cell was not sorted: ' num2str(task_info(lines(ii)).cell_ID)])
         task_info(lines(ii)).grade = 10;
         continue

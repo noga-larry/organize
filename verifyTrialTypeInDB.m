@@ -17,7 +17,7 @@ switch dataSet
             end
         end
          
-       case 'Golda single days'
+    otherwise 
            MaestroTask = DBTask;
 end
 
