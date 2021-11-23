@@ -182,15 +182,7 @@ for ii = 1:length(lines)
     
     % run over trials and save them
     if neuro_flag
-        f_b = task_info(lines(ii)).fb_after_sort;
-        f_e = task_info(lines(ii)).fe_after_sort;
-        if ~isnumeric(f_b)
-            f_b = str2num(f_b);
-            f_e = str2num(f_e);
-            trial_num = [f_b(1):f_e(1) f_b(2):f_e(2)];
-        else
-            trial_num = f_b:f_e;
-        end
+        trial_num = getTrialsNumbers(task_info,lines(ii));
         
         if totalElectrodeNumber>1
             num_e = task_info(lines(ii)).electrode; % electode number
