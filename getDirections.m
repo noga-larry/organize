@@ -14,6 +14,7 @@ if ~exist('ind','var')
     ind=1:length(data.trials);
 end
 
+assert(~isempty(ind))
 expression = '(?<=d)[0-9]*'; 
 [match_d_tmp,~] = regexp({data.trials(ind).name},expression,'match','split','forceCellOutput');
 match_d_tmp = reshape([match_d_tmp{:}],length(match_d_tmp{1}),length(match_d_tmp));
