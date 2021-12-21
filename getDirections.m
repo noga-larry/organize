@@ -1,4 +1,4 @@
-function [directions,match_d] = getDirections (data,ind)
+function [directions,match_d] = getDirections (data,ind,varargin)
 % This function finds all target directions in data based on
 % trial names.
 % Inputs:     data           A structure containig session trials
@@ -10,9 +10,18 @@ function [directions,match_d] = getDirections (data,ind)
 %                            represents the first target in the name and
 %                            the second row the second target.
 
-if ~exist('ind','var')
+if nargin==1
     ind=1:length(data.trials);
+elseif nargin>2
+    assert(isnumeric(ind))
 end
+
+p = inputParser;
+defaultOmitNonIndexed = false;
+addOptional(p,'omitNonIndexed',defaultOmitNonIndexed,@islogical);
+
+parse(p,varargin{:})
+omitNonIndexed = p.Results.omitNonIndexed;
 
 assert(~isempty(ind))
 expression = '(?<=d)[0-9]*'; 
@@ -24,3 +33,7 @@ match_d(:,ind) = match_d_tmp;
 directions = unique(match_d);
 directions(isnan(directions)) = [];
 directions = sort(directions);
+
+if omitNonIndexed
+    match_d(isnan(match_d)) = [];
+end
