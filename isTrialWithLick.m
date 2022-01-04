@@ -12,7 +12,7 @@ function boolLick = isTrialWithLick(data,align_to, tb, te)
 % Output:  boolLick           boolLick(i)==1 iff there is a lick  in
 %                             trial i in the specified time range.
 
-THRESHOLD = 5000;
+THRESHOLD = 1000;
 
 boolLick = nan(1,length(data.trials));
 for t=1:length(data.trials)
@@ -27,9 +27,18 @@ for t=1:length(data.trials)
                 data.trials(t).cue_onset - tb;
             te_in_trial = data.trials(t).extended_trial_begin +...
                 data.trials(t).cue_onset + te;
+        case 'reward'
+            tb_in_trial = ...
+                data.trials(t).rwd_time_in_extended - tb;
+            te_in_trial = ...
+                data.trials(t).rwd_time_in_extended + te;
     end
     
+    if te_in_trial>length(data.trials(t).lick)
+        te_in_trial = length(data.trials(t).lick)
+    end
     aligned_lick = data.trials(t).lick(tb_in_trial:te_in_trial);
+    
     boolLick(t) = any(aligned_lick>THRESHOLD);
 end
     

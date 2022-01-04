@@ -1,8 +1,8 @@
 function [data] = getExtendedBehavior (data,maestroPath)
 
-blink_threshold = 25; % deg
-blink_margin = 100; % ms
-
+BLINK_THRESHOLD = 25; % deg
+BLINK_MARGIN = 100; % ms
+MOTION_DURATION = 750;
 
 b_0 = data.extended_caliberation.b_0;
 b_1 = data.extended_caliberation.b_1;
@@ -19,22 +19,22 @@ for t=1:length(data.trials)
     data.trials(t).extended_trial_begin = extended.trial_begin_ms;
     
     
-    ind  = find(abs(data.trials(t).extended_hPos)>blink_threshold |...
-        abs(data.trials(t).extended_vPos)>blink_threshold);
+    ind  = find(abs(data.trials(t).extended_hPos)>BLINK_THRESHOLD |...
+        abs(data.trials(t).extended_vPos)>BLINK_THRESHOLD);
     blinkBegin = [];
     blinkEnd = [];
     if ~isempty(ind)
         changes = find(diff([-70 ind])>1);
         blinkBegin = ind(changes);
         blinkEnd = [ind(changes(2:end)), ind(length(ind))];
-        blinkBegin = max(blinkBegin-blink_margin,1);
-        blinkEnd = min(blinkEnd+blink_margin, length(data.trials(t).extended_vPos));
+        blinkBegin = max(blinkBegin-BLINK_MARGIN,1);
+        blinkEnd = min(blinkEnd+BLINK_MARGIN, length(data.trials(t).extended_vPos));
     end
     data.trials(t).extended_blink_begin = blinkBegin;
     data.trials(t).extended_blink_end = blinkEnd;
     
     blinks = sort ([blinkBegin,blinkEnd]);
-    targetOffset = data.trials(t).movement_onset +750;
+    targetOffset = data.trials(t).movement_onset +MOTION_DURATION;
     [beginSaccade, endSaccade] = ...
         getSaccades(data.trials(t).extended_hVel,...
         data.trials(t).extended_vVel, blinks, data.trials(t).movement_onset, targetOffset);
