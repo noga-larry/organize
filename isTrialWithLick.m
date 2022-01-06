@@ -1,4 +1,4 @@
-function boolLick = isTrialWithLick(data,align_to, tb, te)
+function boolLick = isTrialWithLick(data,align_to, tb, te, ind)
 
 % This function returns a boolian vector, indicating if a trial has a
 % lick in it or not, at a time range before and after a
@@ -12,10 +12,17 @@ function boolLick = isTrialWithLick(data,align_to, tb, te)
 % Output:  boolLick           boolLick(i)==1 iff there is a lick  in
 %                             trial i in the specified time range.
 
+if nargin==4
+    ind = 1:length(data.trials);
+elseif nargin>4
+    assert(isnumeric(ind))
+end
+
 THRESHOLD = 1000;
 
-boolLick = nan(1,length(data.trials));
-for t=1:length(data.trials)
+boolLick = nan(1,length(ind));
+for i=1:length(ind)
+    t = ind(i);
     switch align_to
         case 'targetMovementOnset'
             tb_in_trial = data.trials(t).extended_trial_begin +...
@@ -39,6 +46,6 @@ for t=1:length(data.trials)
     end
     aligned_lick = data.trials(t).lick(tb_in_trial:te_in_trial);
     
-    boolLick(t) = any(aligned_lick>THRESHOLD);
+    boolLick(i) = any(aligned_lick>THRESHOLD);
 end
     
