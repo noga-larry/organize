@@ -10,30 +10,5 @@ function [directions,match_d] = getDirections (data,ind,varargin)
 %                            represents the first target in the name and
 %                            the second row the second target.
 
-if nargin==1
-    ind=1:length(data.trials);
-elseif nargin>2
-    assert(isnumeric(ind))
-end
+[directions,match_d] = trialTypeGetter('(?<=P)[0-9]*|(?<=p)[0-9]*', data,ind,varargin{:})
 
-p = inputParser;
-defaultOmitNonIndexed = false;
-addOptional(p,'omitNonIndexed',defaultOmitNonIndexed,@islogical);
-
-parse(p,varargin{:})
-omitNonIndexed = p.Results.omitNonIndexed;
-
-assert(~isempty(ind))
-expression = '(?<=d)[0-9]*'; 
-[match_d_tmp,~] = regexp({data.trials(ind).name},expression,'match','split','forceCellOutput');
-match_d_tmp = reshape([match_d_tmp{:}],length(match_d_tmp{1}),length(match_d_tmp));
-match_d_tmp =  cellfun(@str2double,match_d_tmp);
-match_d = nan(size(match_d_tmp,1),length(data.trials));
-match_d(:,ind) = match_d_tmp;
-directions = unique(match_d);
-directions(isnan(directions)) = [];
-directions = sort(directions);
-
-if omitNonIndexed
-    match_d(isnan(match_d)) = [];
-end
