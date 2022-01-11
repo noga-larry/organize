@@ -41,5 +41,5 @@ groups(isnan(groups)) = [];
 groups = sort(groups);
 
 if omitNonIndexed
-    match_vec(isnan(match_vec)) = [];
+    match_vec(:, setdiff(1:length(data.trials),ind)) = [];
 end

@@ -24,8 +24,7 @@ for i=2:length(data.trials)
 end
 
 if omitNonIndexed
-    match_op = match_op_tmp(ind);
-    
+    match_op = match_op_tmp(ind);    
 else
     match_op = nan(1,length(data.trials));
     match_op(ind) = match_op_tmp(ind);

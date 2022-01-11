@@ -10,5 +10,10 @@ function [directions,match_d] = getDirections (data,ind,varargin)
 %                            represents the first target in the name and
 %                            the second row the second target.
 
-[directions,match_d] = trialTypeGetter('(?<=P)[0-9]*|(?<=p)[0-9]*', data,ind,varargin{:})
+if nargin>1
+    [directions,match_d] = trialTypeGetter('(?<=d)[0-9]*', data,ind,varargin{:});
+else
+    [directions,match_d] = ...
+        trialTypeGetter('(?<=d)[0-9]*', data);
+end
 

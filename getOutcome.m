@@ -32,6 +32,21 @@ end
 match_o = nan(size(match_o_tmp,1),length(data.trials));
 match_o(:,ind) = Reward;
 
-if omitNonIndexed
-    match_o(isnan(match_o)) = [];
+% choice 
+if size(match_o,1)==2
+    choice = [data.trials.choice];
+    match_o_choice = nan(1,size(match_o,2));
+    for i=1:length(data.trials)
+        if choice(i)
+            match_o_choice(i) = match_o(1,i);
+        else
+            match_o_choice(i) = match_o(2,i);
+        end
+    end
+    match_o = match_o_choice;
 end
+
+if omitNonIndexed
+    match_o(setdiff(1:length(data.trials),ind)) = [];
+end
+
