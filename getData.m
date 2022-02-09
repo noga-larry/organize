@@ -132,7 +132,9 @@ REWARD_THRESHOLD = 1000;
 % check if there is also neural data, or behavior only
 
 neuro_flag = isfield(task_info, 'cell_ID');
-
+if ~neuro_flag
+    extendedExist = false
+end
 % Monkey names dictionary:
 monkeyList =...
     {'albert',
@@ -337,6 +339,8 @@ for ii = 1:length(lines)
         end
     end
     
+    
+    
     if ~allTrialAreCorrectInDB
         disp(['Error in DB: ' name])
     end
@@ -388,6 +392,7 @@ for ii = 1:length(lines)
         continue
     end
     
+     
     % name cell data file
     if neuro_flag
         name = [num2str(task_info(lines(ii)).cell_ID) ' ' task_info(lines(ii)).cell_type];
