@@ -1,4 +1,4 @@
-function [sizes,match_s] = getRewardSize(data)
+function [sizes,match_s] = getRewardSize(data,ind,varargin)
 % This function finds all target reward probabilities in data based on
 % trial names.
 % Inputs:     data           A structure containig session trials
@@ -11,7 +11,14 @@ function [sizes,match_s] = getRewardSize(data)
 %                            the second row the second target.
 
 expression = '(?<=R)[L,S]'; 
-[match_s,~] = regexp({data.trials.name},expression,'match','split','forceCellOutput');
-match_s = [match_s{:}];
-sizes = unique(match_s');
+% [match_s,~] = regexp({data.trials.name},expression,'match','split','forceCellOutput');
+% match_s = [match_s{:}];
+% sizes = unique(match_s');
+
+if nargin>1
+    [sizes,match_s] = trialTypeGetter(expression, data,ind,varargin{:});
+else
+    [sizes,match_s] = ...
+        trialTypeGetter(expression, data);
+end
 

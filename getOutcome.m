@@ -12,6 +12,13 @@ elseif nargin>2
     assert(isnumeric(ind))
 end
 
+
+if isempty(ind)
+    disp('Empty set of indices!')
+    match_o = nan;
+    return
+end
+
 p = inputParser;
 defaultOmitNonIndexed = false;
 addOptional(p,'omitNonIndexed',defaultOmitNonIndexed,@islogical);

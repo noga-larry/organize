@@ -31,21 +31,34 @@ addOptional(p,'omitNonIndexed',defaultOmitNonIndexed,@islogical);
 parse(p,varargin{:})
 omitNonIndexed = p.Results.omitNonIndexed;
 
-[match_vec_emp,~] = regexp({data.trials(ind).name},expression,'match','split','forceCellOutput');
+[match_vec_tmp,~] = regexp({data.trials(ind).name},expression,'match','split','forceCellOutput');
 
-if any(cellfun(@isempty,match_vec_emp))
+if any(cellfun(@isempty,match_vec_tmp))
     disp('Error in determining trial type')
     groups = {};
     match_vec = nan(length(ind),1);    
     return
 end
-match_vec_emp = reshape([match_vec_emp{:}],length(match_vec_emp{1}),length(match_vec_emp));
-match_vec_emp =  cellfun(@str2double,match_vec_emp);
-match_vec = nan(size(match_vec_emp,1),length(data.trials));
-match_vec(:,ind) = match_vec_emp;
-groups = unique(match_vec);
-groups(isnan(groups)) = [];
-groups = sort(groups);
+match_vec_tmp = reshape([match_vec_tmp{:}],length(match_vec_tmp{1}),length(match_vec_tmp));
+
+isNumeric = ~any(isnan(cellfun(@str2double,match_vec_tmp)));
+if isNumeric
+    match_vec_tmp =  cellfun(@str2double,match_vec_tmp);
+    match_vec = nan(size(match_vec_tmp,1),length(data.trials));
+else
+    match_vec = cell(size(match_vec_tmp,1),length(data.trials));
+end
+
+match_vec(:,ind) = match_vec_tmp;
+
+if isNumeric
+    groups = match_vec(~isnan(match_vec));
+    groups = unique(match_vec);
+    groups = sort(groups);
+else
+    groups = match_vec(~cellfun(@isempty,match_vec));
+    groups = uniqueRowsCA(groups');
+end
 
 if omitNonIndexed
     match_vec(:, setdiff(1:length(data.trials),ind)) = [];
