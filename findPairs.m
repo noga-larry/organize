@@ -8,26 +8,10 @@ for ii=1:length(lines1)
     simoultaneusLines = task_info(lines1(ii)).cell_recorded_simultaneously;
     simoultaneusLines = intersect(lines2,simoultaneusLines);
     for jj = 1:length(simoultaneusLines)
-
-        fb1 = task_info(lines1(ii)).fb_after_sort;
-        fe1 = task_info(lines1(ii)).fe_after_sort;
-        if ~isnumeric(fb1)
-            fb1 = str2num(fb1);
-            fe1 = str2num(fe1);
-            trial_num1 = [fb1(1):fe1(1) fb1(2):fe1(2)];
-        else
-            trial_num1 = fb1:fe1;
-        end
-        fb2 = task_info(simoultaneusLines(jj)).fb_after_sort;
-        fe2 = task_info(simoultaneusLines(jj)).fe_after_sort;
-
-        if ~isnumeric(fb2)
-            fb2 = str2num(fb2);
-            fe2 = str2num(fe2);
-            trial_num2 = [fb2(1):fe2(1) fb2(2):fe2(2)];
-        else
-            trial_num2 = fb2:fe2;
-        end
+        
+        trial_num1 = getTrialsNumbers(task_info,lines1(ii));
+        trial_num2 = getTrialsNumbers(task_info,simoultaneusLines(jj));
+       
         if length(intersect(trial_num1,trial_num2))>= num_trials
             
             counter = counter +1;

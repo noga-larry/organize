@@ -20,7 +20,7 @@ for ii=1:length(sessions)
             
             if length(intersect(trial_num1,trial_num2)) >= req_params.num_trials...
                     & ~(task_info(lines(c)).cell_ID == task_info(lines(d)).cell_ID)...
-                    & ~(task_info(lines(c)).electrode == task_info(lines(d)).electrode)
+                    & ~(task_info(lines(c)).electrode == task_info(lines(d)).electrode);
 
                 listOfCells = [listOfCells lines(d)];
             end
