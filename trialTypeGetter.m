@@ -18,7 +18,7 @@ elseif nargin>3
 end
 
 if isempty(ind)
-    disp('Empty set of indices!')
+    warning('Empty set of indices!')
     groups = nan;
     match_vec = nan;
     return
@@ -34,9 +34,9 @@ omitNonIndexed = p.Results.omitNonIndexed;
 [match_vec_tmp,~] = regexp({data.trials(ind).name},expression,'match','split','forceCellOutput');
 
 if any(cellfun(@isempty,match_vec_tmp))
-    disp('Error in determining trial type')
+    warning('Error in determining trial type')
     groups = {};
-    match_vec = nan(length(ind),1);    
+    match_vec = nan(1,length(ind));    
     return
 end
 match_vec_tmp = reshape([match_vec_tmp{:}],length(match_vec_tmp{1}),length(match_vec_tmp));
