@@ -1,4 +1,4 @@
-function [data,flagCross] = getLicking (data,maestroPath);
+function [data,flagCross] = getLicking (data,maestroPath)
 
 threshold = 1000;
 flagCross = false;

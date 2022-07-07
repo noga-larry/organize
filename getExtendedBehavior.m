@@ -1,4 +1,4 @@
-function [data] = getExtendedBehavior (data,maestroPath)
+function [data] = getExtendedBehavior (data,supPath,MaestroPath)
 
 BLINK_THRESHOLD = 25; % deg
 BLINK_MARGIN = 100; % ms
@@ -7,10 +7,11 @@ MOTION_DURATION = 750;
 b_0 = data.extended_caliberation.b_0;
 b_1 = data.extended_caliberation.b_1;
 
-data = getBehavior (data,maestroPath);
+data = getBehavior (data,supPath);
 
 for t=1:length(data.trials)
-    extended = importdata (  [maestroPath '\' data.info.monkey '\' data.info.session ...
+    
+    extended = importdata (  [MaestroPath '\' data.info.monkey '\' data.info.session ...
         '\extend_trial\' data.trials(t).maestro_name '.mat']);
     data.trials(t).extended_hPos = b_0(1)+b_1(1)*extended.eyeh';
     data.trials(t).extended_vPos = b_0(2)+b_1(2)*extended.eyev';
