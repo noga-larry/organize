@@ -17,12 +17,17 @@ elseif nargin>3
     assert(isnumeric(ind))
 end
 
+if ischar(ind) && strcmp(ind,'all')
+   ind = 1:length(data.trials);
+end
+
 if isempty(ind)
     warning('Empty set of indices!')
     groups = nan;
     match_vec = nan;
     return
 end
+
 
 p = inputParser;
 defaultOmitNonIndexed = false;
