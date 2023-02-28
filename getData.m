@@ -127,6 +127,8 @@ CALIBRATE_POS = 40;
 BLINK_MARGIN = 70; %ms
 REWARD_THRESHOLD = 1000;
 
+WARNING_R_SQ_FOR_EXTENDED_BEHAV = 0.98;
+
 [task_info,sup_dir_to, sup_dir_from] = loadDBAndSpecifyDataPaths(dataSet);
 
 % check if there is also neural data, or behavior only
@@ -215,7 +217,8 @@ for ii = 1:length(lines)
     d = 0; % counting number of discarded trials
     for f = 1:length(trial_num)
         
-        data_raw = readcxdata(  [dir_from '\'  data.info.session data.info.trial_type sprintf('.%04d', trial_num(f))]);
+        data_raw = readcxdata(  [dir_from '\'  data.info.session data.info.trial_type...
+            sprintf('.%04d', trial_num(f))]);
         
         discard = 0;
         if data_raw.discard ==1 | any(data_raw.mark1==-1)| ~isempty(data_raw.marks);
@@ -351,7 +354,8 @@ for ii = 1:length(lines)
         [b_0,b_1,R_squared,nObservetions] = caliberateExtendedBehavior...
             ([maestroH{:}],[maestroV{:}],[extendedH{:}],[extendedV{:}]);
         
-        extended_behavior_fit = any(R_squared<0.99) | nObservetions < 30000;
+        extended_behavior_fit = any(R_squared<WARNING_R_SQ_FOR_EXTENDED_BEHAV)...
+            | nObservetions < 30000;
         if extended_behavior_fit
             warning(['Problem with extended behavior caliberation in cell %s: '...
                 'R_squared = %d, %f.; nObservetions = %g'],num2str(data.info.cell_ID)...

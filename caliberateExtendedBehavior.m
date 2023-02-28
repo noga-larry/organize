@@ -23,17 +23,17 @@ function [b_0,b_1,R_squared,nObservetions] = caliberateExtendedBehavior ...
 %                         Number od observation used to fit the models. 
 
 
-mdl = fitlm(extendedH,maestroH);
-b_0(1) = mdl.Coefficients.Estimate(1);
-b_1(1) = mdl.Coefficients.Estimate(2);
-R_squared(1) = mdl.Rsquared.Ordinary;
+mdlH = fitlm(extendedH,maestroH);
+b_0(1) = mdlH.Coefficients.Estimate(1);
+b_1(1) = mdlH.Coefficients.Estimate(2);
+R_squared(1) = mdlH.Rsquared.Ordinary;
 
-mdl = fitlm(extendedV,maestroV);
-b_0(2) = mdl.Coefficients.Estimate(1);
-b_1(2) = mdl.Coefficients.Estimate(2);
-R_squared(2) = mdl.Rsquared.Ordinary;
+mdlV = fitlm(extendedV,maestroV);
+b_0(2) = mdlV.Coefficients.Estimate(1);
+b_1(2) = mdlV.Coefficients.Estimate(2);
+R_squared(2) = mdlV.Rsquared.Ordinary;
 
-nObservetions = mdl.NumObservations; 
+nObservetions = mdlV.NumObservations; 
 
 
 end
