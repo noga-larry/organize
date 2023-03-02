@@ -124,7 +124,6 @@ includeBehavior = p.Results.includeBehavior;
 CALIBRATE_VEL = 10.8826;
 CALIBRATE_POS = 40;
 
-BLINK_MARGIN = 100; %ms
 REWARD_THRESHOLD = 1000;
 
 WARNING_R_SQ_FOR_EXTENDED_BEHAV = 0.98;
@@ -311,29 +310,7 @@ for ii = 1:length(lines)
                     data.trials(f-d).extended_spike_times = ...
                         extended.sortedSpikes{data.info.electrode+(data.info.template-1)*totalElectrodeNumber};
                 end
-                
-                % values for extended data caliberation
-                
-                exHraw = extended.eyeh(extended.trial_begin_ms:(extended.trial_end_ms-1));
-                exVraw = extended.eyev(extended.trial_begin_ms:(extended.trial_end_ms-1));
-                maeHraw = data_raw.data(1,:)/CALIBRATE_POS;
-                maeVraw = data_raw.data(2,:)/CALIBRATE_POS;
-                
-                assert(length(exHraw)==length( data_raw.data(1,:)))
-                
-                nanBegin = max(data_raw.blinks(1:2:end)-BLINK_MARGIN,1);
-                nanEnd = min(data_raw.blinks(2:2:end)+BLINK_MARGIN,length(maeVraw));
-                
-                exHraw = removesSaccades(exHraw,nanBegin,nanEnd);
-                exVraw = removesSaccades(exVraw,nanBegin,nanEnd);
-                maeHraw = removesSaccades(maeHraw,nanBegin,nanEnd);
-                maeVraw = removesSaccades(maeVraw,nanBegin,nanEnd);
-                
-                extendedH{f-d} = exHraw';
-                extendedV{f-d} = exVraw';
-                maestroH{f-d} = maeHraw;
-                maestroV{f-d} = maeVraw;
-                
+               
                 
             catch
                 warning(['Extended data for ' data.trials(f-d).maestro_name ' not found']);
@@ -351,21 +328,10 @@ for ii = 1:length(lines)
     
     % caliberate extended behavior
     if extendedExist
-        [b_0,b_1,R_squared,nObservetions] = caliberateExtendedBehavior...
-            ([maestroH{:}],[maestroV{:}],[extendedH{:}],[extendedV{:}]);
         
-        extended_behavior_fit = any(R_squared<WARNING_R_SQ_FOR_EXTENDED_BEHAV)...
-            | nObservetions < 30000;
-        if extended_behavior_fit
-            warning(['Problem with extended behavior caliberation in cell %s: '...
-                'R_squared = %d, %f.; nObservetions = %g'],num2str(data.info.cell_ID)...
-                ,R_squared(1),R_squared(2),nObservetions)
-        end
-        
-        data.extended_caliberation.nt = nObservetions;
-        data.extended_caliberation.b_0 = b_0;
-        data.extended_caliberation.b_1 = b_1;
-        data.extended_caliberation.R_squared = R_squared;
+        data = caliberateExtendedBehavior ...
+            (data,sup_dir_to, sup_dir_from);
+
     end
     
     % check screen rotation
@@ -437,6 +403,7 @@ for ii = 1:length(lines)
     % Create mata-data information structure:
     task_info(lines(ii)).save_name = name;
     task_info(lines(ii)).num_trials = length(data.trials);
+   
     if extendedExist
         task_info(lines(ii)).extended_behavior_fit = extended_behavior_fit;
     end
@@ -457,4 +424,5 @@ disp('Finished!')
 
 
 end
+
 
