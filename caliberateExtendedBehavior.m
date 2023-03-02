@@ -24,16 +24,19 @@ function [data, extended_behavior_fit] = caliberateExtendedBehavior ...
 
 WARNING_R_SQ = 0.97;
 data = getBehavior (data,dataPath);
-WARNING_NUM_OBSV =30000;
+WARNING_NUM_OBSV = 30000;
 
-for  i =1:length(data.trials)
+inx = find(~[data.trials.fail]); 
+
+
+for  i =1:length(inx)
 
     extended = importdata([MaestroPath  '\'  data.info.monkey '\' data.info.session '\extend_trial\' ...
-        data.trials(i).maestro_name '.mat']);
+        data.trials(inx(i)).maestro_name '.mat']);
 
 
     [exHraw,exVraw,maeHraw,maeVraw] = ...
-        prepareVarsForExtendedBehaviorCalb(extended,data.trials(i));
+        prepareVarsForExtendedBehaviorCalb(extended,data.trials(inx(i)));
 
     extendedH{i} = exHraw';
     extendedV{i} = exVraw';
@@ -82,7 +85,7 @@ function [exHraw,exVraw,maeHraw,maeVraw ] = ...
     prepareVarsForExtendedBehaviorCalb(extended,trialData)
 
 BLINK_MARGIN = 100; %ms
-REMOVE_EDGE = 15; %ms
+REMOVE_EDGE = 500; %ms
 % values for extended data caliberation
 
 exHraw = extended.eyeh(extended.trial_begin_ms:(extended.trial_end_ms-1));
