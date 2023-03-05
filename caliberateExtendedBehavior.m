@@ -31,9 +31,9 @@ inx = find(~[data.trials.fail]);
 
 for  i =1:length(inx)
 
-    extended = importdata([MaestroPath  '\'  data.info.monkey '\' data.info.session '\extend_trial\' ...
+    extended = importdata([MaestroPath  '\'  data.info.monkey '\' ...
+        data.info.session '\extend_trial\' ...
         data.trials(inx(i)).maestro_name '.mat']);
-
 
     [exHraw,exVraw,maeHraw,maeVraw] = ...
         prepareVarsForExtendedBehaviorCalb(extended,data.trials(inx(i)));
@@ -85,6 +85,8 @@ function [exHraw,exVraw,maeHraw,maeVraw ] = ...
     prepareVarsForExtendedBehaviorCalb(extended,trialData)
 
 BLINK_MARGIN = 100; %ms
+HALF_BLINK_THRESHOLD = 10; % deg
+HALF_BLINK_MX_TIME = 150;
 REMOVE_EDGE = 500; %ms
 % values for extended data caliberation
 
@@ -95,8 +97,14 @@ maeVraw = trialData.vPos;
 
 assert(length(exHraw)==length(trialData.hPos))
 
-nanBegin = max(trialData.blinkBegin-BLINK_MARGIN,1);
-nanEnd = min(trialData.blinkEnd+BLINK_MARGIN,length(maeVraw));
+[te,tb] = findHalfBlinkTimes(maeVraw,HALF_BLINK_THRESHOLD,...
+    HALF_BLINK_MX_TIME);
+
+blinkBegin = [trialData.blinkBegin, tb];
+blinkEnd = [trialData.blinkEnd, te];
+
+nanBegin = max(blinkBegin-BLINK_MARGIN,1);
+nanEnd = min(blinkEnd+BLINK_MARGIN,length(maeVraw));
 
 exHraw = removesSaccades(exHraw,nanBegin,nanEnd);
 exVraw = removesSaccades(exVraw,nanBegin,nanEnd);
@@ -107,6 +115,25 @@ exHraw = exHraw(REMOVE_EDGE:end-REMOVE_EDGE);
 exVraw = exVraw(REMOVE_EDGE:end-REMOVE_EDGE);
 maeHraw = maeHraw(REMOVE_EDGE:end-REMOVE_EDGE);
 maeVraw = maeVraw(REMOVE_EDGE:end-REMOVE_EDGE);
+
+
+end
+
+
+function [tb, te] = findHalfBlinkTimes(vpos,threshold,mxDur)
+
+crossAreas = findCrossAreas(-vpos, threshold);
+
+if ~isempty(crossAreas)
+    inx = find(crossAreas(:,2)-crossAreas(:,1)>mxDur);
+    crossAreas(inx,:) = [];
+    tb = crossAreas(:,1)';
+    te = crossAreas(:,2)';
+else
+    
+    tb = [];
+    te = [];
+end
 
 
 end
