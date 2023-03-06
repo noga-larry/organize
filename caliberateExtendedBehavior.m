@@ -22,9 +22,10 @@ function [data, extended_behavior_fit] = caliberateExtendedBehavior ...
 %               nObservetions
 %                         Number od observation used to fit the models.
 
-WARNING_R_SQ = 0.97;
-data = getBehavior (data,dataPath);
+WARNING_R_SQ = 0.98;
 WARNING_NUM_OBSV = 30000;
+
+data = getBehavior (data,dataPath);
 
 inx = find(~[data.trials.fail]); 
 
@@ -48,10 +49,10 @@ end
 [b_0,b_1,R_squared,nObservetions] = ...
     fitCalbModel([extendedH{:}],[maestroH{:}],[extendedV{:}],[maestroV{:}]);
 
-extended_behavior_fit = any(R_squared<WARNING_R_SQ)...
-    | nObservetions < WARNING_NUM_OBSV;
+extended_behavior_fit = ~(any(R_squared<WARNING_R_SQ)...
+    | nObservetions < WARNING_NUM_OBSV);
 
-if extended_behavior_fit
+if ~extended_behavior_fit
     warning(['Problem with extended behavior caliberation in cell %s: '...
         'R_squared = %d, %f.; nObservetions = %g'],num2str(data.info.cell_ID)...
         ,R_squared(1),R_squared(2),nObservetions)
