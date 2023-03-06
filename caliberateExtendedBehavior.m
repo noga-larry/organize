@@ -85,9 +85,10 @@ function [exHraw,exVraw,maeHraw,maeVraw ] = ...
     prepareVarsForExtendedBehaviorCalb(extended,trialData)
 
 BLINK_MARGIN = 100; %ms
-HALF_BLINK_THRESHOLD = 10; % deg
+HALF_BLINK_THRESHOLD = 20; % deg
 HALF_BLINK_MX_TIME = 150;
 REMOVE_EDGE = 500; %ms
+SAURATION_VAL = 30000;
 % values for extended data caliberation
 
 exHraw = extended.eyeh(extended.trial_begin_ms:(extended.trial_end_ms-1));
@@ -116,6 +117,14 @@ exVraw = exVraw(REMOVE_EDGE:end-REMOVE_EDGE);
 maeHraw = maeHraw(REMOVE_EDGE:end-REMOVE_EDGE);
 maeVraw = maeVraw(REMOVE_EDGE:end-REMOVE_EDGE);
 
+if any(abs(exHraw)>SAURATION_VAL) | any(abs(exVraw)>SAURATION_VAL)
+    
+    exHraw = [];
+    exVraw = [];
+    maeHraw = [];
+    maeVraw = [];
+    
+end
 
 end
 
@@ -134,6 +143,5 @@ else
     tb = [];
     te = [];
 end
-
 
 end
