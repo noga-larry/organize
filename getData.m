@@ -326,14 +326,7 @@ for ii = 1:length(lines)
     end
     
     
-    % caliberate extended behavior
-    if extendedExist
-        
-        data = caliberateExtendedBehavior ...
-            (data,sup_dir_to, sup_dir_from);
-
-    end
-    
+   
     % check screen rotation
     rotated = [data.trials.screen_rotation]~=0;
     if any(rotated)
@@ -402,12 +395,7 @@ for ii = 1:length(lines)
     
     % Create mata-data information structure:
     task_info(lines(ii)).save_name = name;
-    task_info(lines(ii)).num_trials = length(data.trials);
-   
-    if extendedExist
-        task_info(lines(ii)).extended_behavior_fit = extended_behavior_fit;
-    end
-    
+    task_info(lines(ii)).num_trials = length(data.trials);  
 
     
     clear data extendedH extendedV maestroH maestroV
