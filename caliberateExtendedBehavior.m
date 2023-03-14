@@ -25,19 +25,19 @@ function [data, extended_behavior_fit] = caliberateExtendedBehavior ...
 WARNING_R_SQ = 0.98;
 WARNING_NUM_OBSV = 30000;
 
-data = getBehavior (data,dataPath);
+data_with_behavior = getBehavior (data,dataPath);
 
-inx = find(~[data.trials.fail]); 
+inx = find(~[data_with_behavior.trials.fail]); 
 
 
 for  i =1:length(inx)
 
-    extended = importdata([MaestroPath  '\'  data.info.monkey '\' ...
-        data.info.session '\extend_trial\' ...
-        data.trials(inx(i)).maestro_name '.mat']);
+    extended = importdata([MaestroPath  '\'  data_with_behavior.info.monkey '\' ...
+        data_with_behavior.info.session '\extend_trial\' ...
+        data_with_behavior.trials(inx(i)).maestro_name '.mat']);
 
     [exHraw,exVraw,maeHraw,maeVraw] = ...
-        prepareVarsForExtendedBehaviorCalb(extended,data.trials(inx(i)));
+        prepareVarsForExtendedBehaviorCalb(extended,data_with_behavior.trials(inx(i)));
 
     extendedH{i} = exHraw';
     extendedV{i} = exVraw';
@@ -54,7 +54,7 @@ extended_behavior_fit = ~(any(R_squared<WARNING_R_SQ)...
 
 if ~extended_behavior_fit
          warning(['Problem with extended behavior caliberation in cell %s: '...
-        'R_squared = %d, %f.; nObservetions = %g'],num2str(data.info.cell_ID)...
+        'R_squared = %d, %f.; nObservetions = %g'],num2str(data_with_behavior.info.cell_ID)...
         ,R_squared(1),R_squared(2),nObservetions)
 end
 

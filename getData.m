@@ -260,8 +260,10 @@ for ii = 1:length(lines)
         %  4: vertical velocity
         
         [targetOnset, targetOffset] = ...
-            targetMovementOnOffSet(data_raw.targets, trialType);
+            targetMovementOnOffSet(data_raw.targets, trialType);  
+       
         data.trials(f-d).movement_onset = targetOnset;
+        data.trials(f-d).movement_offset = targetOffset;
         data.trials(f-d).cue_onset = data_raw.targets.on{1}(1);
         
         data.trials(f-d).blinkBegin = max(1,data_raw.blinks(1:2:end));

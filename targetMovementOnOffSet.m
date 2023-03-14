@@ -1,6 +1,7 @@
 function  [onset offset]  = targetMovementOnOffSet( targets, trialType )
 % This function finds the beginning and end of the target movement
 
+
 if ~(exist('trialType','var') == 1)
    trialType = 'pursuit'
 end
