@@ -14,7 +14,7 @@ for t=1:length(data.trials)
         data.info.session '\extend_trial\' ...
         data.trials(t).maestro_name '.mat']);
     
-    
+    extendedBehaviorData.trials(t).maestro_name = data.trials(t).maestro_name;
     extendedBehaviorData.trials(t).hPos = b_0(1)+b_1(1)*extended.eyeh';
     extendedBehaviorData.trials(t).vPos = b_0(2)+b_1(2)*extended.eyev';
     extendedBehaviorData.trials(t).hVel = ...
@@ -42,8 +42,11 @@ for t=1:length(data.trials)
         extendedBehaviorData.trials(t).vVel, blinks,...
         data.trials(t).movement_onset, data.trials(t).movement_offset);
     
-    data.trials(t).extended_saccade_begin = beginSaccade;
-    data.trials(t).extended_saccade_end = endSaccade;
+    extendedBehaviorData.trials(t).extended_saccade_begin = beginSaccade;
+    extendedBehaviorData.trials(t).extended_saccade_end = endSaccade;
+    
+    extendedBehaviorData.trials(t).extended_saccade_begin = beginSaccade;
+    extendedBehaviorData.trials(t).extended_saccade_end = endSaccade;
     
 %     ts = extendedBehaviorData.trials(t).extended_trial_begin...
 %         :(data.trials(t).rwd_time_in_extended-1);
