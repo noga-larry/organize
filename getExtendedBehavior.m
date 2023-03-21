@@ -1,7 +1,7 @@
 function [data] = getExtendedBehavior (data,supPath)
 
 
-path = [supPath '\' data.info.task '\behavior\' ...
+path = [supPath '\' data.info.task '\extended behavior\' ...
     data.info.extended_behavior_shadow_name];
 behavior = importdata(path);
 

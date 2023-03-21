@@ -40,7 +40,8 @@ for t=1:length(data.trials)
     [beginSaccade, endSaccade] = ...
         getSaccades(extendedBehaviorData.trials(t).hVel,...
         extendedBehaviorData.trials(t).vVel, blinks,...
-        data.trials(t).movement_onset, data.trials(t).movement_offset);
+        extendedBehaviorData.trials(t).extended_trial_begin + data.trials(t).movement_onset...
+        ,extendedBehaviorData.trials(t).extended_trial_begin + data.trials(t).movement_offset);
     
     extendedBehaviorData.trials(t).extended_saccade_begin = beginSaccade;
     extendedBehaviorData.trials(t).extended_saccade_end = endSaccade;
@@ -50,27 +51,27 @@ for t=1:length(data.trials)
     
 %     ts = extendedBehaviorData.trials(t).extended_trial_begin...
 %         :(data.trials(t).rwd_time_in_extended-1);
-    
-    %         subplot(1,2,1)
-    %         plot(extendedBehaviorData.trials(t).hVel,'b'); hold on
-    %         plot(ts,data.trials(t).hVel,'r');
-    %         plot(beginSaccade,extendedBehaviorData.trials(t).hVel(beginSaccade),'o')
-    %         plot(endSaccade,extendedBehaviorData.trials(t).hVel(endSaccade),'o');
-    %
-    %         plot(blinkBegin,extendedBehaviorData.trials(t).hVel(blinkBegin),'*')
-    %         plot(blinkEnd,extendedBehaviorData.trials(t).hVel(blinkEnd),'*'); hold off
-    %
-    %
-    %
-    %         subplot(1,2,2)
-    %         plot(extendedBehaviorData.trials(t).vVel,'b'); hold on
-    %         plot(ts,data.trials(t).vVel,'r');
-    %         plot(beginSaccade,extendedBehaviorData.trials(t).vVel(beginSaccade),'o')
-    %         plot(endSaccade,extendedBehaviorData.trials(t).vVel(endSaccade),'o');
-    %
-    %
-    %         plot(blinkBegin,extendedBehaviorData.trials(t).vVel(blinkBegin),'*')
-    %         plot(blinkEnd,extendedBehaviorData.trials(t).vVel(blinkEnd),'*'); hold off
-    %
-    
+%     
+%     subplot(1,2,1)
+%     plot(extendedBehaviorData.trials(t).hVel,'k'); hold on
+%     plot(ts,data.trials(t).hVel,'b');
+%     plot(beginSaccade,extendedBehaviorData.trials(t).hVel(beginSaccade),'or')
+%     plot(endSaccade,extendedBehaviorData.trials(t).hVel(endSaccade),'om');
+%     
+%     plot(blinkBegin,extendedBehaviorData.trials(t).hVel(blinkBegin),'*r')
+%     plot(blinkEnd,extendedBehaviorData.trials(t).hVel(blinkEnd),'*m'); hold off
+%     
+%     
+%     
+%     subplot(1,2,2)
+%     plot(extendedBehaviorData.trials(t).vVel,'k'); hold on
+%     plot(ts,data.trials(t).vVel,'b');
+%     plot(beginSaccade,extendedBehaviorData.trials(t).vVel(beginSaccade),'or')
+%     plot(endSaccade,extendedBehaviorData.trials(t).vVel(endSaccade),'om');
+%     
+%     
+%     plot(blinkBegin,extendedBehaviorData.trials(t).vVel(blinkBegin),'*r')
+%     plot(blinkEnd,extendedBehaviorData.trials(t).vVel(blinkEnd),'*m'); hold off
+%     
+%     
 end
