@@ -1,5 +1,7 @@
 function [data] = getExtendedBehavior (data,supPath)
 
+    
+assert(data.extended_caliberation.extended_behavior_fit)
 
 path = [supPath '\' data.info.task '\extended behavior\' ...
     data.info.extended_behavior_shadow_name];

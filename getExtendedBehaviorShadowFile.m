@@ -24,10 +24,10 @@ for t=1:length(data.trials)
     extendedBehaviorData.trials(t).extended_trial_begin = extended.trial_begin_ms;
     
     
-    pos_trace  = abs(extendedBehaviorData.trials(t).hPos)>BLINK_THRESHOLD |...
+    posTrace  = abs(extendedBehaviorData.trials(t).hPos)>BLINK_THRESHOLD |...
         abs(extendedBehaviorData.trials(t).vPos)>BLINK_THRESHOLD;
-    blinkBegin = find(diff([0 pos_trace])==1);
-    blinkEnd= find(diff([pos_trace 0])==-1);
+    blinkBegin = find(diff([0 posTrace])==1);
+    blinkEnd= find(diff([posTrace 0])==-1);
     blinkBegin = max(blinkBegin-BLINK_MARGIN,1);
     blinkEnd = min(blinkEnd+BLINK_MARGIN, length(extendedBehaviorData.trials(t).hPos)-1);
     
@@ -49,9 +49,17 @@ for t=1:length(data.trials)
     extendedBehaviorData.trials(t).extended_saccade_begin = beginSaccade;
     extendedBehaviorData.trials(t).extended_saccade_end = endSaccade;
     
+
+%     if any(beginSaccade>data.trials(t).rwd_time_in_extended & ...
+%             beginSaccade< (data.trials(t).rwd_time_in_extended+400))...
+%             || any(blinkBegin>data.trials(t).rwd_time_in_extended& ...
+%             blinkBegin< (data.trials(t).rwd_time_in_extended+400))
+%         continue
+%     end
 %     ts = extendedBehaviorData.trials(t).extended_trial_begin...
 %         :(data.trials(t).rwd_time_in_extended-1);
 %     
+%     data = getBehavior(data,'D:\Vermis Data')
 %     subplot(1,2,1)
 %     plot(extendedBehaviorData.trials(t).hVel,'k'); hold on
 %     plot(ts,data.trials(t).hVel,'b');
@@ -61,7 +69,8 @@ for t=1:length(data.trials)
 %     plot(blinkBegin,extendedBehaviorData.trials(t).hVel(blinkBegin),'*r')
 %     plot(blinkEnd,extendedBehaviorData.trials(t).hVel(blinkEnd),'*m'); hold off
 %     
-%     
+%     xline(data.trials(t).rwd_time_in_extended)
+%     xline(data.trials(t).rwd_time_in_extended +400)
 %     
 %     subplot(1,2,2)
 %     plot(extendedBehaviorData.trials(t).vVel,'k'); hold on
@@ -73,5 +82,7 @@ for t=1:length(data.trials)
 %     plot(blinkBegin,extendedBehaviorData.trials(t).vVel(blinkBegin),'*r')
 %     plot(blinkEnd,extendedBehaviorData.trials(t).vVel(blinkEnd),'*m'); hold off
 %     
+%     xline(data.trials(t).rwd_time_in_extended)
+%     xline(data.trials(t).rwd_time_in_extended +400)
 %     
 end
