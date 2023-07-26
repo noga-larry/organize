@@ -1,15 +1,24 @@
 function [groups,match_vec] = trialTypeGetter(expression, data,ind,varargin)
-% This function finds all target reward probabilities in data based on
-% trial names.
-% Inputs:     data           A structure containig session trials
-%             ind            An optional variable, if
-% Outputs:    probabilities  Cell array of all probabilites
-%             match_p        Cell array in the length of data.trials
-%                            containing the probabilities in each trial. If
-%                            data is a choice session match_p's diminsions
-%                            will be 2xlength(data.trials). The first row
-%                            represents the first target in the name and
-%                            the second row the second target.
+% TRIALTYPEGETTER Extract trial types based on a given regular expression.
+% This funcion is called by other functions like getDirecctions,
+% getProbabilities, getVelocities, etc.
+%
+% INPUTS:
+%   expression: Regular expression to match trial names against.
+%   data: Struct containing trial information with fields 'trials' that is an array of structs.
+%         Each struct in the 'trials' array should have a field 'name' representing the trial name.
+%   ind (optional): Indices of the trials to consider for matching. Default is 1:length(data.trials).
+%   varargin (optional): Additional optional arguments.
+%       'omitNonIndexed': Logical flag to exclude non-indexed trials from match_vec. Default is false.
+%
+% OUTPUTS:
+%   groups: Unique trial types found in the 'data.trials' that match the provided regular expression.
+%           If the matches are numeric, the output will be a sorted numeric array.
+%           If the matches are non-numeric strings, the output will be a cell array of unique rows.
+%   match_vec: A matrix or cell array containing the matched values for each trial in 'data.trials'.
+%              Rows correspond to different trial types, and columns correspond to trials in 'data.trials'.
+%              If the matches are numeric, match_vec will be a numeric matrix.
+%              If the matches are non-numeric strings, match_vec will be a cell array.
 
 if nargin==2
     ind=1:length(data.trials);

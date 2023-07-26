@@ -3,11 +3,11 @@ function data = getPreviousCompleted(data,MaestroPath)
 % is 1 if the previous trial was completed and 0 else.
 
 
-threshold = 1000;
+THRESHOLD = 1000;
 
 for t = 1:length(data.trials)
     extended = importdata (  [MaestroPath '\'  data.info.session ...
         '\extend_trial\' data.trials(t).maestro_name '.mat']);
-    data.trials(t).previous_completed = any(extended.rwd(1:extended.trial_begin_ms) > threshold);
+    data.trials(t).previous_completed = any(extended.rwd(1:extended.trial_begin_ms) > THRESHOLD);
     plot(extended.rwd); hold on
 end

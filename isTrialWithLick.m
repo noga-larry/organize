@@ -1,5 +1,12 @@
 function boolLick = isTrialWithLick(data,align_to, tb, te, ind)
 
+%%%%%%%%%%%%%%%%%%
+
+% NOT UPDATED!!!!
+
+%%%%%%%%%%%%%%%%%%
+
+
 % This function returns a boolian vector, indicating if a trial has a
 % lick in it or not, at a time range before and after a
 % trial event.
@@ -8,7 +15,7 @@ function boolLick = isTrialWithLick(data,align_to, tb, te, ind)
 %         allign_to           The trial event around which saccdes are
 %                             looked for.
 %         tb                  Time before the event (in ms).
-%         te                  Time after the event.
+%         te                  Time after the event (in ms).
 % Output:  boolLick           boolLick(i)==1 iff there is a lick  in
 %                             trial i in the specified time range.
 

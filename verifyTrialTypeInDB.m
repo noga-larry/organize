@@ -1,5 +1,10 @@
 function [boolVerifieid] = verifyTrialTypeInDB(dataSet,MaestroTrialName,DBTask)
 
+% This function is designed to determine the MaestroTask (a trial type) 
+% based on the given inputs, specifically dataSet, MaestroTrialName, 
+% and DBTask. This is used to seperate sessions and needs to be extended to
+% include additional tasks in additional datasets. 
+
 switch dataSet
     
     case {'Vermis','Golda'}

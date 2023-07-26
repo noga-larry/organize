@@ -1,8 +1,24 @@
 function task_info = listSimultaneousPairs(task_info,req_params)
 
-% This function added a feild "cell_recorded_simultaneously" to task_info
-% that contains the line numbers of cells recoded at the same time.
-% Note: Will remove cells recorded on the same electrode.
+% listSimultaneousPairs - Add information about simultaneously recorded cells to task_info.
+%
+% This function adds a field 'cell_recorded_simultaneously' to the 'task_info' structure.
+% The field contains the line numbers of cells that were recorded at the same time as the
+% current cell. The function uses information from the 'session' and other relevant fields
+% in 'task_info' to identify simultaneous recordings and excludes cells recorded on the same
+% electrode.
+%
+% INPUTS:
+%   task_info: A structure array containing information about recorded cells. Each element
+%              of the structure array represents a cell and is expected to have fields like
+%              'session', 'cell_ID', 'electrode', etc.
+%   req_params: A structure that contains required parameters for identifying simultaneous
+%               cell recordings.
+%
+% OUTPUTS:
+%   task_info: The input 'task_info' structure with an additional field 'cell_recorded_simultaneously'
+%              added to each cell's entry. This field contains the line numbers of cells that were
+%              recorded simultaneously with the current cell.
 
 sessions = uniqueRowsCA({task_info.session}');
 

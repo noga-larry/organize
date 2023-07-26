@@ -26,7 +26,10 @@ for s = 1:length(prefix)
     if isempty(numTrials)
         continue
     end
-    data_raw = readcxdata(  [dirFrom '\'  prefix{s} 'a' sprintf('.%04d',numTrials(1))]);
+    data_raw = readcxdata([dirFrom '\'  prefix{s} 'a' sprintf('.%04d',numTrials(1))]);
+    if isempty(data_raw.trialname)
+        continue
+    end
     taskBefore = getTrialType(data_raw);
     thetaBefore = double(data_raw.key.iPosTheta/1000);
     fb = 1;
